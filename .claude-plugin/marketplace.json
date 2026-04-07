@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "parallax",
-      "source": ".",
+      "source": "./parallax",
       "description": "Institutional-grade investment research powered by Parallax: stock analysis, portfolio construction, ETF intelligence, macro outlook, and thematic universe building."
     }
   ]

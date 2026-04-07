@@ -1,0 +1,8 @@
+{
+  "name": "parallax",
+  "version": "0.1.0",
+  "description": "Institutional-grade investment research powered by Parallax: stock analysis, portfolio construction, ETF intelligence, macro outlook, and thematic universe building.",
+  "author": {
+    "name": "Parallax"
+  }
+}
