@@ -1,53 +1,28 @@
 ---
 name: parallax-scoring
-description: |
-  Explains Parallax's multi-factor scoring system and how to interpret scores in investment context.
-
-  Use when: presenting scores to users, explaining signals, contextualizing what a score means for a given stock or ETF.
+description: How to interpret Parallax factor scores (0–100) in investment context.
 ---
 
-# Parallax Scoring System
+# Parallax Scoring
 
-## The Five Factors
+Five factors, each 0–100, peer-relative within the stock's sector:
 
-Parallax scores every stock and ETF on five factors, each 0-100:
-
-| Factor | What it measures |
+| Factor | Measures |
 |---|---|
-| **Quality** | Earnings quality, balance sheet strength, return on capital |
-| **Value** | Price relative to fundamentals — earnings, book, cash flow |
-| **Momentum** | Price and earnings trend — direction and persistence |
+| **Quality** | Earnings quality, balance sheet strength, ROIC |
+| **Value** | Price vs fundamentals (earnings, book, cash flow) |
+| **Momentum** | Price and earnings trend direction and persistence |
 | **Defensive** | Volatility, beta, drawdown characteristics |
-| **Tactical** | Short-term signal combining technicals and sentiment |
+| **Tactical** | Short-term technicals + sentiment signal |
 
-The **Overall score** is a weighted composite. Weighting varies by market regime — defensive weight increases in risk-off environments.
+**Overall** = weighted composite (defensive weight increases in risk-off regimes).
 
-## Score Interpretation
+**Ranges:** 75–100 strong · 60–74 constructive · 40–59 neutral · 25–39 cautious · 0–24 weak
 
-| Range | Signal |
-|---|---|
-| 75-100 | Strong — high conviction signal |
-| 60-74 | Constructive — favorable but not extreme |
-| 40-59 | Neutral — no clear edge |
-| 25-39 | Cautious — some headwinds |
-| 0-24 | Weak — significant concerns |
+**Common patterns:**
+- High Quality + Low Value → quality at a price; wait for catalyst
+- High Momentum + Low Defensive → growth play; higher beta, works in risk-on
+- High Defensive + Low Momentum → shelter stock; underperforms rallies, protects drawdowns
+- High Value + Low Quality → value trap risk; check earnings quality first
 
-## Common Patterns
-
-**High Quality + Low Value** → Quality at a price. Good business, may be expensive. Watch for catalyst before entry.
-
-**High Momentum + Low Defensive** → Growth/momentum play. Higher beta. Works in risk-on environments.
-
-**High Defensive + Low Momentum** → Shelter stock. Likely underperforms in rallies but protects in drawdowns.
-
-**High Value + Low Quality** → Value trap risk. Cheap for a reason. Look at earnings quality before acting.
-
-**Balanced across all** → Core holding profile. Steady compounder.
-
-## How to use `explain_methodology`
-Call `explain_methodology` with a concept name (value, quality, momentum, defensive, tactical, scoring, factor_weighting) for detailed definitions. Pass a score number for contextualised interpretation.
-
-## Peer Ranking
-Scores are peer-relative, not absolute. A Quality score of 72 means the stock is in roughly the top 28% of its peer group — not that it has a 72% quality rating in any absolute sense.
-
-Always read scores in the context of the peer group. A 65 in a high-quality sector (consumer staples) is more meaningful than a 65 in a low-quality sector.
+Call `explain_methodology` with a concept name for detailed definitions, or pass a score number for contextualised interpretation.
