@@ -1,11 +1,13 @@
 {
-  "version": "1.0.0",
+  "name": "parallax-plugin",
+  "owner": {
+    "name": "Parallax"
+  },
   "plugins": [
     {
       "name": "parallax",
-      "version": "0.1.0",
-      "description": "Institutional-grade investment research powered by Parallax: stock analysis, portfolio construction, ETF intelligence, macro outlook, and thematic universe building.",
-      "source": "."
+      "source": ".",
+      "description": "Institutional-grade investment research powered by Parallax: stock analysis, portfolio construction, ETF intelligence, macro outlook, and thematic universe building."
     }
   ]
 }
