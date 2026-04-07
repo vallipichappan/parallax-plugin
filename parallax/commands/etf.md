@@ -18,3 +18,5 @@ argument-hint: "[ETF ticker(s) or search keywords]"
 ETF tickers are plain format: SPY, QQQ, IWM — no exchange suffix.
 
 **Output:** Profile → Factor scores → Top holdings → Overlap (if comparing) → Recommendation.
+
+*"This is informational analysis based on Parallax factor scores, not investment advice."*

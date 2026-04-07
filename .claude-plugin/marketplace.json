@@ -1,13 +1,13 @@
 {
   "name": "parallax-plugin",
   "owner": {
-    "name": "Parallax"
+    "name": "Chicago Global Capital"
   },
   "plugins": [
     {
       "name": "parallax",
       "source": "./parallax",
-      "description": "Institutional-grade investment research powered by Parallax: stock analysis, portfolio construction, ETF intelligence, macro outlook, and thematic universe building."
+      "description": "End-to-end investment research workflows powered by Parallax factor scores, macro analysis, and AI synthesis. 10 commands covering stock analysis, portfolio diagnostics, ETF intelligence, thematic screening, macro outlook, Shariah compliance, AI investor profiles (Buffett, Greenblatt, Klarman, Soros, consensus), scenario analysis, and rebalancing across 40+ global markets."
     }
   ]
 }

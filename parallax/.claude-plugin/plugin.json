@@ -1,8 +1,9 @@
 {
   "name": "parallax",
-  "version": "0.1.0",
-  "description": "Institutional-grade investment research powered by Parallax: stock analysis, portfolio construction, ETF intelligence, macro outlook, and thematic universe building.",
+  "version": "1.1.0",
+  "description": "End-to-end investment research workflows powered by Parallax factor scores, macro analysis, and AI synthesis. Unlike data-access plugins, Parallax delivers structured verdicts — a single command produces a stock brief, portfolio health check, earnings quality report, halal compliance screen, or AI investor profile analysis (Buffett, Greenblatt, Klarman, Soros, or consensus across all four) with cross-validated data, parallel execution, and graceful fallbacks built in. 10 commands covering stock analysis, portfolio diagnostics, ETF intelligence, thematic screening, macro outlook, Shariah compliance, AI investor profiles, scenario analysis, and rebalancing across 40+ global markets.",
   "author": {
-    "name": "Parallax"
+    "name": "Chicago Global Capital",
+    "url": "https://chicago.global"
   }
 }
