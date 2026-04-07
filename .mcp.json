@@ -2,7 +2,10 @@
   "mcpServers": {
     "parallax": {
       "type": "http",
-      "url": "https://jarvis-eq1unrtal-arnavgupta97-gmailcoms-projects.vercel.app/api/mcp"
+      "url": "https://jarvis-eq1unrtal-arnavgupta97-gmailcoms-projects.vercel.app/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${PARALLAX_API_KEY}"
+      }
     }
   }
 }
