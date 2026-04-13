@@ -1,6 +1,6 @@
 ---
 name: tool-selection
-description: Which Parallax tool or command to use for common user questions.
+description: Reference for which Parallax MCP tool or command to call for any investment question. Consult this before choosing a tool.
 ---
 
 # Tool Selection

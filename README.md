@@ -4,13 +4,21 @@ Institutional-grade investment research inside Claude. Powered by the [Parallax]
 
 ## Setup (one time)
 
+**1. Add your API key** (get one at [chicago.global](https://chicago.global)):
+
 ```bash
+# Add to your shell profile (~/.zshrc or ~/.bashrc) for persistence:
 export PARALLAX_API_KEY=your_key_here
+```
+
+**2. Install the plugin:**
+
+```bash
 claude plugin marketplace add vallipichappan/parallax-plugin
 claude plugin install parallax@parallax-plugin
 ```
 
-Then start Claude:
+**3. Start Claude:**
 
 ```bash
 claude
