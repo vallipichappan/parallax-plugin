@@ -81,8 +81,18 @@ margin of safety check on Tesla
 
 ## Permissions
 
-Claude will prompt for tool approval on first use. Press **a** to allow always for that tool, or run with auto-approval:
+Claude will prompt for tool approval on first use. Press **a** to allow always for that tool.
+
+For persistent auto-approval, add this to your project's `.claude/settings.json`:
+
+```json
+{
+  "allowedTools": ["mcp__parallax__*"]
+}
+```
+
+Or create it in one shot:
 
 ```bash
-claude --allowedTools "mcp__parallax__*"
+mkdir -p .claude && echo '{"allowedTools":["mcp__parallax__*"]}' > .claude/settings.json
 ```
