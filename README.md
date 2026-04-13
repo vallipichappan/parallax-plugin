@@ -2,7 +2,15 @@
 
 Institutional-grade investment research inside Claude. Powered by the [Parallax](https://chicago.global) platform.
 
-## Setup (one time)
+## Setup
+
+### Via Cowork (org install)
+
+Your org admin adds the plugin once via Organization Settings → Plugins. After that:
+- Cowork prompts you for the API key on first use and stores it automatically
+- No shell config or permissions setup needed
+
+### Manual install
 
 **1. Add your API key** (get one at [chicago.global](https://chicago.global)):
 

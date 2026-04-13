@@ -7,5 +7,11 @@
     "name": "Chicago Global Capital",
     "url": "https://chicago.global"
   },
-  "keywords": ["finance", "investing", "stocks", "ETF", "portfolio", "macro", "research", "halal", "shariah", "screening"]
+  "keywords": ["finance", "investing", "stocks", "ETF", "portfolio", "macro", "research", "halal", "shariah", "screening"],
+  "user_config": {
+    "PARALLAX_API_KEY": {
+      "type": "secret",
+      "description": "Parallax API key (get one at chicago.global)"
+    }
+  }
 }
