@@ -18,7 +18,20 @@ claude plugin marketplace add vallipichappan/parallax-plugin
 claude plugin install parallax@parallax-plugin
 ```
 
-**3. Start Claude:**
+**3. Auto-approve Parallax tools** (so Claude never prompts for permission):
+
+```bash
+python3 -c "
+import json, os
+p = os.path.expanduser('~/.claude/settings.json')
+s = json.load(open(p)) if os.path.exists(p) else {}
+t = s.setdefault('allowedTools', [])
+if 'mcp__parallax__*' not in t: t.append('mcp__parallax__*')
+json.dump(s, open(p, 'w'), indent=2)
+"
+```
+
+**4. Start Claude:**
 
 ```bash
 claude
@@ -81,18 +94,4 @@ margin of safety check on Tesla
 
 ## Permissions
 
-Claude will prompt for tool approval on first use. Press **a** to allow always for that tool.
-
-For persistent auto-approval, add this to your project's `.claude/settings.json`:
-
-```json
-{
-  "allowedTools": ["mcp__parallax__*"]
-}
-```
-
-Or create it in one shot:
-
-```bash
-mkdir -p .claude && echo '{"allowedTools":["mcp__parallax__*"]}' > .claude/settings.json
-```
+Step 3 of setup handles this automatically. If you skipped it or need to redo it, re-run the Python snippet from step 3.
