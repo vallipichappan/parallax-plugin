@@ -217,6 +217,10 @@ Total token cost: <sum>
 
 End with the consensus umbrella disclaimer from the investor-profiles skill.
 
+## Render discipline
+
+Steps execute silently — no `**Step N**` labels, no "Cross-validation passed" narration, no "Let me…" preamble. Begin the response with the rendered profile output. In every mode, render the AI-interaction disclosure per the conventions skill §9.2 immediately above the profile/consensus disclaimer.
+
 ---
 
 ## Graceful Fallback

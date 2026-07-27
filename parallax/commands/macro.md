@@ -5,7 +5,7 @@ argument-hint: "[country or market name, or 'compare US Japan Europe']"
 
 # Macro Outlook
 
-Market names are case-sensitive. If unsure, call `list_macro_countries` first.
+**Market normalization:** call `list_macro_countries` first and match the user's input against the covered market names (case-sensitive, ~12 markets). Regions ("Europe", "Asia") are not markets — expand to the covered member markets and say so. If a requested market is uncovered, state "Parallax macro coverage does not include [X]" and list the covered set — never guess.
 
 ## Batch A — Coverage + telemetry (parallel)
 
@@ -28,8 +28,8 @@ Use summary mode here because the macro command needs the full picture. Other co
 ## Batch C — Score top picks (conditional, after B)
 
 If equity screening was done:
-1. `get_peer_snapshot` for top 5 universe results (parallel).
-2. `get_score_analysis` with weeks=26 for top 3 (parallel).
+1. `get_peer_snapshot` for top 5 universe results (parallel, cross-validated per the conventions skill — drop mismatches). Note: rankings cover listed equities with Parallax factor coverage only — funds/OEICs are not screened.
+2. `get_score_analysis` for top 3 (parallel, server-default window).
 
 ## Output
 
@@ -39,7 +39,7 @@ If equity screening was done:
 - **Positioning Implications** — sector tilts, risk posture
 - **Tactical Bias** — short-term signal
 - **Data Freshness** — from `check_macro_health`
-- **Top Equity Opportunities** (if screened) — table: symbol, name, sector, total score, key strengths
+- **Top Equity Opportunities** (if screened) — informational preface per the conventions skill §12, then table: symbol, name, sector, total score, key strengths
 - **Score Trends** (if screened) — improving vs declining picks
 
-*"These are analytical outputs based on Parallax factor scores, not investment advice."*
+Render the AI-interaction disclosure per the conventions skill §9.2 immediately above the disclaimer, then the standard disclaimer verbatim from the conventions skill §9.1.

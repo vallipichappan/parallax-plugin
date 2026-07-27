@@ -14,7 +14,7 @@ After any `get_peer_snapshot` call, cross-check the company identity field again
 | Tool | Field to check |
 |---|---|
 | `get_company_info` | `name` |
-| `get_peer_snapshot` | `target_company` (top-level — NOT `company` on peer rows, which refers to each peer) |
+| `get_peer_snapshot` | `target_company` (top-level — NOT `name` on peer rows, which refers to each peer) |
 | `get_score_analysis` | Verify `data[0].symbol` matches requested RIC |
 
 **On name mismatch, refuse to render and emit:**
@@ -42,7 +42,8 @@ Every profile output must include, in order:
 4. **Data table/checklist:** Profile-specific (factor table, rank table, balance-sheet checks, or theme-exposure table)
 5. **Verdict:** `match` (full fit) / `partial_match` (some criteria) / `no_match` (zero fit) — with count
 6. **Methodology footer:** Source citation, anchor-test date, tool sequence, token cost
-7. **Disclaimer:** VERBATIM from below — substitute `[Investor]` with the named investor only
+7. **AI-interaction disclosure:** render per the conventions skill §9.2, immediately above the disclaimer
+8. **Disclaimer:** VERBATIM from below — substitute `[Investor]` with the named investor only
 
 **Forbidden verdict language:** "buy", "sell", "recommend", "would buy", "endorses", "rates", "likes", "hates", any first-person impersonation.
 
@@ -74,7 +75,7 @@ This output is an AI-inferred synthesis produced by the Parallax AI Investor Pro
 |---|---|---|
 | Quality | >= 5 | Above average; catches KO (8), AXP (5) |
 | Value | >= 4 | Loose — Buffett mega-caps look expensive on current multiples |
-| Momentum | <= 6 | Slight negative tilt; NVDA (7.2) fails, KO (4.8) passes |
+| Momentum | <= 6 | Design screen against momentum-chasing names (not a BKP-documented tilt); NVDA (7.2) fails, KO (4.8) passes |
 | Defensive | >= 7 | Strong low-beta; KO (10), AXP (8), AAPL (9.5) pass |
 
 **Verdict:** 4/4 = match, 1-3/4 = partial_match, 0/4 = no_match.

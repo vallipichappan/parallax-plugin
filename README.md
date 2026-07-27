@@ -29,15 +29,24 @@ claude plugin install parallax@parallax-plugin
 **3. Auto-approve Parallax tools** (so Claude never prompts for permission):
 
 ```bash
-python3 -c "
-import json, os
+python3 - <<'EOF'
+import json, os, shutil
 p = os.path.expanduser('~/.claude/settings.json')
-s = json.load(open(p)) if os.path.exists(p) else {}
-t = s.setdefault('allowedTools', [])
-if 'mcp__parallax__*' not in t: t.append('mcp__parallax__*')
+if os.path.exists(p):
+    shutil.copy(p, p + '.bak')
+    s = json.load(open(p))
+else:
+    s = {}
+allow = s.setdefault('permissions', {}).setdefault('allow', [])
+rule = 'mcp__plugin_parallax_parallax__*'
+if rule not in allow:
+    allow.append(rule)
 json.dump(s, open(p, 'w'), indent=2)
-"
+print('added', rule, '(backup at', p + '.bak)')
+EOF
 ```
+
+If tool calls still prompt, run `/permissions` inside Claude to check the exact tool prefix shown for the Parallax server and adjust the rule to match.
 
 **4. Start Claude:**
 
@@ -49,15 +58,17 @@ claude
 
 | Command | What it does |
 |---|---|
-| `/parallax:stock [ticker]` | Research brief — scores, peers, financials, macro context, news, analyst views |
+| `/parallax:stock [ticker]` | Research brief — fundamentals + technicals lenses, peers, macro context, news, analyst views |
 | `/parallax:portfolio [holdings]` | Portfolio analysis with health flags, drill-down, and advisor mode |
-| `/parallax:etf [ticker or theme]` | ETF research, comparison, overlap, and search |
+| `/parallax:explain [holdings]` | Drawdown attribution — why is my portfolio down, transient vs fundamental |
+| `/parallax:credit [ticker]` | Creditor's lens — Altman Z, leverage/coverage/liquidity thresholds, quality early-warning |
+| `/parallax:etf [ticker or theme]` | ETF research, comparison, holdings overlap, and search |
 | `/parallax:macro [country]` | Macro outlook — regime, indicators, sectors, rates, FX, equity opportunities |
 | `/parallax:universe [theme]` | Build a scored portfolio from a natural language investment thesis |
 | `/parallax:deep-dive [ticker]` | Deep fundamental + technical analysis with AI assessment |
 | `/parallax:screen [mode] [ticker]` | Shariah compliance screen (halal) or forensic earnings quality analysis |
 | `/parallax:scenario [event] portfolio=[...]` | Event-driven exposure analysis — what's at risk, what to rotate into |
-| `/parallax:rebalance [holdings]` | Prioritized trade recommendations with health flags and replacements |
+| `/parallax:rebalance [holdings]` | Prioritized rebalancing classifications with health flags and replacements |
 | `/parallax:investor [profile] [ticker]` | AI investor profile — Buffett factor match, Greenblatt Magic Formula, Klarman margin of safety, Soros macro regime, or consensus across all four |
 
 ## Examples
@@ -65,10 +76,12 @@ claude
 ```
 /parallax:stock AAPL
 /parallax:portfolio AAPL 50%, MSFT 50%
+/parallax:explain AAPL 30%, MSFT 40%, SPY 30%
+/parallax:credit F
 /parallax:etf SPY QQQ
 /parallax:etf high quality tech ETFs
 /parallax:macro United States
-/parallax:macro compare US Japan Europe
+/parallax:macro compare US Japan
 /parallax:universe profitable AI infrastructure companies
 /parallax:deep-dive TSLA "Is the robotaxi thesis priced in?"
 /parallax:screen halal AAPL
@@ -89,6 +102,8 @@ You can also ask naturally — skills fire automatically:
 ```
 tell me about Microsoft
 analyze my portfolio: AAPL 50%, GOOGL 50%
+why is my portfolio down this month?
+can Ford service its debt?
 what ETFs overlap between VOO and VTI?
 is Apple stock halal?
 what if China tariffs hit my portfolio?
@@ -102,4 +117,4 @@ margin of safety check on Tesla
 
 ## Permissions
 
-Step 3 of setup handles this automatically. If you skipped it or need to redo it, re-run the Python snippet from step 3.
+Step 3 of setup handles this automatically. If you skipped it or need to redo it, re-run the Python snippet from step 3, or run `/permissions` inside Claude and allow the Parallax server tools there.

@@ -7,7 +7,7 @@
     {
       "name": "parallax",
       "source": "./parallax",
-      "description": "End-to-end investment research workflows powered by Parallax factor scores, macro analysis, and AI synthesis. 10 commands covering stock analysis, portfolio diagnostics, ETF intelligence, thematic screening, macro outlook, Shariah compliance, AI investor profiles (Buffett, Greenblatt, Klarman, Soros, consensus), scenario analysis, and rebalancing across 40+ global markets."
+      "description": "End-to-end investment research workflows powered by Parallax factor scores, macro analysis, and AI synthesis. 12 commands covering stock analysis, portfolio diagnostics, drawdown attribution, credit assessment, ETF intelligence, thematic screening, macro outlook, Shariah compliance, AI investor profiles (Buffett, Greenblatt, Klarman, Soros, consensus), scenario analysis, and rebalancing."
     }
   ]
 }
