@@ -15,9 +15,10 @@ There is **no build step, no test runner, and no package manager** — the repo 
 parallax/
   .claude-plugin/plugin.json      Plugin manifest (name, version, user_config for PARALLAX_API_KEY)
   .mcp.json                       Remote MCP server config (HTTP + Bearer ${PARALLAX_API_KEY})
-  commands/*.md                   12 slash commands (stock, portfolio, explain, credit, etf, macro, ...)
-  skills/<name>/SKILL.md          8 shared skills commands rely on (subdirectory layout is REQUIRED —
+  commands/*.md                   15 slash commands (start, stock, peers, why-score, portfolio, explain, ...)
+  skills/<name>/SKILL.md          9 shared skills commands rely on (subdirectory layout is REQUIRED —
                                   the plugin loader only discovers skills/<name>/SKILL.md, never flat files)
+scripts/perimeter-scan.py         Pre-push perimeter guard (see Porting, below)
 docs/positioning.md               Marketing/positioning reference
 ```
 
@@ -38,39 +39,55 @@ A command like `stock.md` will say "apply cross-validation per conventions skill
 |---|---|
 | `conventions` | RIC resolution table, cross-validation gate, parallel vs dependent tools, fallback rules (instant/async), verbatim disclaimer. Applies to every command. |
 | `tool-selection` | Decision table mapping user utterances → MCP tool or slash command. |
-| `token-costs` | Per-tool token cost table + routing rules. `quick_portfolio_scores` is the default scoring path; `analyze_portfolio` is a performance-analytics product, preferred for scoring economy only at 15+ holdings. ETF tool costs are UNVERIFIED. |
+| `token-costs` | Per-tool token cost table + routing rules. `quick_portfolio_scores` is the default scoring path; `analyze_portfolio` is a performance-analytics product, preferred for scoring economy only at 15+ holdings. `etf_profile`/`etf_daily_price` priced at 1; only `etf_holdings` remains unverified. |
+| `response-shapes` | Valid `fields` names for `analyze_portfolio` and `get_telemetry`. Both are **passthrough** params — an invalid name fails silently rather than erroring, so field names come from here, never from inference. |
 | `async-jobs` | Polling pattern for `check_job_status`; which tools are async and their wait times. |
 | `health-flags` | 5-flag portfolio health system, priority matrix, drill-down selection, mixed-exchange fallback. Used by `/parallax:portfolio` and `/parallax:rebalance`. |
 | `parallax-scoring` | Factor definitions (Quality/Value/Momentum/Defensive/Tactical), score ranges, `explain_methodology` routing. |
-| `investor-profiles` | Profile specs (Buffett/Greenblatt/Klarman/Soros), thresholds with citation DOIs, cross-validation gate, verbatim disclaimers, consensus super-majority math. |
+| `investor-profiles` | Profile specs (Buffett/Greenblatt/Klarman/Soros), citation DOIs, cross-validation gate, verdict-sensitivity guard, verbatim disclaimers, consensus structure. Publishes no numeric calibration — see the invariant below. |
 | `asset-class-routing` | Asset-class × tool matrix (`etf_profile` as oracle), benchmark-ETF coverage table, multi-symbol fail-empty quirks, failure-handling contracts per workflow type. |
 
 ### Invariants to preserve when editing
 
 - **Cross-validation gate is non-bypassable.** After any `get_peer_snapshot`, check the `target_company` (top-level, NOT peer-row `name` — that field is each peer's name) against `get_company_info.name`. Single-stock verdict flows refuse to render on mismatch; portfolio flows exclude the holding from aggregates and list it in a ⚠ MISMATCH table. `conventions` is the canonical statement; `investor-profiles` restates it.
-- **Per-security scores are 0-10.** All thresholds (health flags, investor profiles) are 0-10 values; portfolio-aggregate surfaces may render 0-100 (score × 10). `parallax-scoring` is the canonical statement.
+- **Per-security scores are 0-10.** Health-flag thresholds are 0-10 values; portfolio-aggregate surfaces may render 0-100 (score × 10). `parallax-scoring` is the canonical statement.
 - **§9.2 AI-interaction disclosure is mandatory** on every output (EU AI Act Art 50, SFC/HKMA/MAS). Commands render it by reference to `conventions` §9.2 — never inline the banner text. §12 advice-boundary framing applies to every action-label table.
 - **Asset-class routing precedes any price/scoring pull** over user-supplied holdings: `etf_profile` is the oracle; `export_price_series` is equity-only, `etf_daily_price` ETF-only, both fail empty. See `asset-class-routing`.
 - **Disclaimers are verbatim.** `conventions` carries the general disclaimer; `investor-profiles` carries individual-profile and consensus disclaimers. When editing these, copy the existing text exactly — downstream outputs substitute investor names only.
 - **Instant vs async tool policy differs.** Instant tools retry once on failure; async tools (`get_news_synthesis`, `get_assessment`, `get_technical_analysis`, `get_financial_analysis`, `get_stock_report`) never retry. Async calls must never block output.
 - **MCP numeric params must not be passed explicitly.** The transport serializes `weeks`/`periods`/`limit`/`days` as strings and fails validation. Rely on server defaults (52 weeks, 4 periods). `investor-profiles` notes this; preserve the constraint when adding new workflows.
-- **Soros Channel B caps verdict.** When telemetry is unavailable, `match` is unreachable — maximum is `partial_match`. Encode this in any new Soros-related flow.
-- **Consensus math uses `ceil(0.75 × A)`** with `minimum_applicable_count = 3`. `M` counts full matches only, not partial_match. Do not weaken thresholds at small N.
+- **Incomplete data caps the verdict.** Any profile or workflow running on partial data is capped at `partial_match` and can never reach `match`. This is why an unavailable telemetry channel caps a Soros verdict — it is the general rule, not a Soros special case.
+- **Investor-profile calibration is never published in this repo.** Scope is exactly the AI Investor Profile specs: per-profile factor cutoffs, percentile bands, anchor-test values, and the consensus super-majority constants. These are Parallax-calibrated against the engine's own score distribution, are not derivable from the cited literature, and are not part of this plugin's public surface. `/parallax:investor` expresses profile criteria by **direction** and reports **observed** values only — a target/threshold column in a profile output table means this invariant has been broken. This does **not** restrict numbers that are public by origin: health-flag cutoffs, AAOIFI Shariah ratios, published academic parameters, or analyst price targets returned by the API all stay. If a future change needs the calibration, it must be cleared upstream in `parallax-workflows`, flow through that repo's `build_bundle.py` redaction and term-scan gates, and be copied from its built `plugin/` output — never hand-authored here.
 
 ## Authoring Changes
 
 - **Adding a command:** create `parallax/commands/<name>.md` with frontmatter (`description`, `argument-hint`). Reference the existing skills rather than restating their rules. Update `README.md` command table and `parallax/skills/tool-selection/SKILL.md`. Bump `parallax/.claude-plugin/plugin.json` version.
 - **Adding a skill:** create `parallax/skills/<name>/SKILL.md` with frontmatter (`name`, `description`) — the subdirectory layout is mandatory; flat `skills/*.md` files are never discovered by the plugin loader. Reference it from the commands that need it.
-- **Changing thresholds or anchor tests** (e.g., Buffett factor cutoffs, Klarman check targets): update the skill spec, then re-verify the anchor tests listed in that skill section still hold per the tuning date noted (e.g., "Anchor tests (2026-04-06)").
+- **Changing thresholds** (e.g., health-flag cutoffs, AAOIFI screen ratios): update the skill spec that owns them, then re-verify against the anchor tickers named in that section. Investor-profile cutoffs are out of scope here — see the calibration invariant above.
 - **Token-cost changes:** update `token-costs.md` table *and* the workflow cost estimates at the bottom, *and* per-command mentions if any.
+
+### Porting from `parallax-workflows`
+
+Upstream is `github.com/bencharoenwong/parallax-workflows`. It classifies every skill in its `PERIMETER.md` and generates its own sanitized public bundle through `build_bundle.py`, which applies five protections this repo does not get for free: a tracked-files-only copy, content-anchored redaction transforms that fail the build when an anchor drifts, a fail-closed term scan, a reference-resolution gate, and an **allowlist** for shared content.
+
+Consequences for anything ported here:
+
+- **Copy from upstream's built `plugin/` output, never from its `skills/` sources.** The sources are pre-redaction. This is the single rule that would have prevented the calibration exposure.
+- **Check `PERIMETER.md` first.** Skills marked `sanitize-required`, `internal-only`, or `claude-only` do not come across. A skill absent from that table defaults to `claude-only` by its own Process section — absence is not permission.
+- **Translate, don't transplant.** Upstream calls tools as `mcp__claude_ai_Parallax__*` behind a `ToolSearch` preflight and JIT-loads `_parallax/…` by path. This plugin bundles its own `.mcp.json`, uses bare tool names, and references `parallax/skills/<name>/SKILL.md` from command prose. Ports that depend on house-view files or Python helpers cannot come across at all — this repo has no build step.
+- **Upstream is not automatically right.** Several defects here were inherited by copying it. Where this repo is already correct — the `target_company` cross-validation field, 0-10 credit thresholds — do not "resync" backwards.
+- **Run `python3 scripts/perimeter-scan.py` before every push.** Stage your changes first; it scans tracked files only.
 
 ## Manual Verification
 
 There is no automated test suite. To verify a change:
 
 1. Install the plugin locally: `claude plugin install parallax@parallax-plugin` (after `marketplace add` pointing at the local path).
-2. Run the affected command against anchor tickers referenced in the skill (e.g., KO/AXP/BRKb/AAPL/NVDA for Buffett).
+2. Run the affected command against a representative symbol and confirm the tool sequence fires as written.
 3. Confirm the cross-validation gate, fallback rules, and disclaimer text fire as specified.
+4. Run `python3 scripts/perimeter-scan.py` — exit 0 required.
+
+**A referenced skill is a directive, not a guarantee.** Commands delegate rules by prose reference, and nothing enforces that the referenced skill was actually loaded and applied. When verifying, check that the *behavior* the skill specifies appears in the output — not merely that the command names the skill.
 
 ## Releases
 

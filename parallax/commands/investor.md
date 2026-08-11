@@ -7,7 +7,7 @@ argument-hint: "[profile] [ticker] — or just [ticker] for consensus"
 
 Applies a documented investor framework to a stock via Parallax data. Not celebrity impersonation — each profile is derived from a published academic source or the investor's own book. Third-person framing always ("Buffett-style", never "Buffett says").
 
-See the `investor-profiles` skill for profile specs, thresholds, citations, cross-validation gate, output template, and verbatim disclaimer.
+See the `investor-profiles` skill for profile specs, citations, cross-validation gate, output template, verdict-sensitivity guard, and verbatim disclaimer. That skill deliberately publishes no numeric cutoffs — never invent, infer, or restate one here.
 
 ## Mode Detection
 
@@ -50,19 +50,19 @@ If ambiguous with a ticker present → default to consensus. If no ticker and no
 | `get_financials` | `symbol`, statement="summary" | Revenue/income narrative |
 | `get_score_analysis` | `symbol` | 52-week factor trend |
 
-### Apply Thresholds
+### Assess Documented Tilts
 
-Per the Buffett section of the investor-profiles skill — apply the four factor thresholds and mark pass/fail.
+Per the Buffett section of the investor-profiles skill — assess each documented tilt by direction and mark met/not met. Do not publish a cutoff for any factor.
 
 For any factor score notably high or low (top/bottom quartile), call `explain_methodology` (free) to include the Parallax definition.
 
 ### Verdict
 
-Per investor-profiles skill verdict rules: 4/4 = match, 1-3/4 = partial_match (specify count), 0/4 = no_match.
+Per investor-profiles skill verdict rules: all criteria met = match, some met = partial_match (specify the count met), none met = no_match.
 
 ### Render
 
-Per output template in investor-profiles skill. Data table: Factor | Target | Score | 52-wk trend | Match. Substitute "Warren Buffett" in the disclaimer.
+Per output template in investor-profiles skill. Data table: Factor | Score | 52-wk trend | Met — observed values only, no target column. Substitute "Warren Buffett" in the disclaimer.
 
 ---
 
@@ -73,22 +73,22 @@ Per output template in investor-profiles skill. Data table: Factor | Target | Sc
 ### Universe Mode (no ticker)
 
 1. `build_stock_universe` with sector-scoped query (default: "US large-cap consumer staples" or user-provided theme).
-2. Cap at top 30 by composite_score.
-3. `get_financials` (statement="ratios") in parallel for all 30 candidates — pull ROC and earnings yield.
+2. Cap the candidate set by composite_score.
+3. `get_financials` (statement="ratios") in parallel for all candidates — pull ROC and earnings yield.
 4. Rank each on ROC and earnings yield independently. Sum ranks, sort ascending.
-5. Take top 10% (top 3 of 30) as the Magic Formula basket.
-6. `get_peer_snapshot` for the top 3 basket members (parallel, pedagogy).
+5. Take the leading names as the Magic Formula basket.
+6. `get_peer_snapshot` for the basket members (parallel, pedagogy).
 
 ### Ticker-check Mode (single ticker)
 
 1. `get_company_info` to identify sector/industry.
 2. `build_stock_universe` with sector-based peer query (e.g., "US large-cap technology hardware" for AAPL).
-3. Cap at top 30, pull ratios, rank per universe mode steps 3-4.
+3. Cap the candidate set, pull ratios, rank per universe mode steps 3-4.
 4. Check target ticker's combined rank.
 
 ### Verdict (ticker-check)
 
-Top 10% = match. Top 25% (outside top 10%) = partial_match. Below top 25% = no_match.
+Report the target's observed combined rank and percentile within the peer universe. Map to match / partial_match / no_match per the investor-profiles skill; do not publish the percentile bands.
 
 ### Render
 
@@ -110,17 +110,17 @@ Universe mode: ranked basket table. Ticker-check mode: percentile verdict. Subst
 
 ### Compute 4 Checks
 
-Run the four checks per the Klarman section of the investor-profiles skill: net cash position, debt vs peers, FCF stability, valuation discount. Plus the Parallax Value >= 4 backup check.
+Run the four checks per the Klarman section of the investor-profiles skill: net cash position, debt vs peers, FCF stability, valuation discount. Plus the Parallax Value sub-score as a backup read.
 
 **Critical:** Compute net cash from balance sheet directly (cash - total debt), NOT from ratios summary.
 
 ### Verdict
 
-Per investor-profiles skill verdict rules. If the distinctive "no position warranted" condition triggers (no_match AND Value < 4), append the footer from the skill spec.
+Per investor-profiles skill verdict rules. Where the profile reaches `no_match` and the Value backup read does not rescue it, append the "no position warranted" footer from the skill spec.
 
 ### Render
 
-Checklist table: Check | Target | Actual | Result. Substitute "Seth Klarman" in the disclaimer.
+Checklist table: Check | Observed | Peer comparator | Result. Report observed values against their peer comparator — no target column. Substitute "Seth Klarman" in the disclaimer.
 
 ---
 
@@ -175,11 +175,11 @@ Each profile returns:
 
 ### Compute Consensus
 
-Apply the super-majority math from the investor-profiles skill (A, M, required_matches = ceil(0.75 × A), minimum_applicable_count = 3). Signal is YES, NO, or INSUFFICIENT_PROFILES.
+Apply the aggregation rules from the investor-profiles skill (`A` = applicable profiles, `M` = full matches only). Signal is YES, NO, or INSUFFICIENT_PROFILES. The super-majority constant and minimum applicable count are calibration — do not state, derive, or approximate them in output.
 
 ### Factor-Level Agreement (load-bearing)
 
-Per investor-profiles skill: surface the three buckets — shared signals (>=2 profiles), single-profile signals, and absence signals (collective blind spots). This section is pedagogically load-bearing — do not skip it.
+Per investor-profiles skill: surface the three buckets — shared signals (flagged by more than one profile), single-profile signals, and absence signals (collective blind spots). This section is pedagogically load-bearing — do not skip it.
 
 ### Render
 
@@ -197,14 +197,13 @@ Profiles run: <N> of 4
 | Klarman       | <verdict>     | <N of 4 balance-sheet checks passed> |
 | Soros         | <verdict>     | <A=<status> B=<status>>              |
 
-## Super-majority consensus signal
+## Consensus signal
 Applicable (A): <count>
 Full matches (M): <count>
-Required: ceil(0.75 × <A>) = <required>
 Consensus: YES / NO / INSUFFICIENT_PROFILES
 
 ## Shared factor signal
-Flagged by >= 2 matching profiles: <list>
+Flagged by more than one matching profile: <list>
 Single-profile signals: <list>
 Collective blind spots: <list>
 
@@ -221,6 +220,8 @@ End with the consensus umbrella disclaimer from the investor-profiles skill.
 
 Steps execute silently — no `**Step N**` labels, no "Cross-validation passed" narration, no "Let me…" preamble. Begin the response with the rendered profile output. In every mode, render the AI-interaction disclosure per the conventions skill §9.2 immediately above the profile/consensus disclaimer.
 
+Apply the Verdict Sensitivity Guard from the investor-profiles skill: never state the value at which a verdict would flip, never rank by distance-to-threshold, and describe near-misses qualitatively only.
+
 ---
 
 ## Graceful Fallback
@@ -229,4 +230,4 @@ Steps execute silently — no `**Step N**` labels, no "Cross-validation passed" 
 - Verdict on incomplete data → capped at `partial_match`, cannot be `match`
 - Greenblatt: INSUFFICIENT_UNIVERSE if <10 names after expansion
 - Soros: Channel B UNAVAILABLE caps verdict at partial_match
-- Consensus: profile failures → `skipped`, proceed with remaining. A < 3 → INSUFFICIENT_PROFILES
+- Consensus: profile failures → `skipped`, proceed with remaining. Too few applicable profiles → INSUFFICIENT_PROFILES

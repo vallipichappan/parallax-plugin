@@ -79,3 +79,7 @@ Render the AI-interaction disclosure per the conventions skill §9.2, then end w
 - **Monitoring Notes** — what to monitor, what to investigate (informational framing per the conventions skill §12)
 
 Render the AI-interaction disclosure per the conventions skill §9.2 immediately above the disclaimer, then the standard disclaimer verbatim from the conventions skill §9.1.
+
+## Render discipline
+
+Apply the Render Discipline section of the conventions skill: suppress step scaffolding, hoist every integrity surface (⚠ MISMATCH rows, degraded-coverage notes, "Data unavailable" / "Analysis pending" markers) into the final output, and close with the §9.2 disclosure immediately above the §9.1 disclaimer.

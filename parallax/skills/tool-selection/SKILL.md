@@ -33,6 +33,11 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "Check earnings quality of [stock]" | `/parallax:screen` (quality mode) |
 | "Forensic analysis of [stock]" | `/parallax:screen` (quality mode) |
 | "Compare [stock A] vs [stock B]" | `export_peer_comparison` (one call, cross-sectionally comparable scores) |
+| "How does [stock] compare to its peers?" | `/parallax:peers` |
+| "Who are [stock]'s competitors / peer group?" | `/parallax:peers` |
+| "Why does [stock] score that way?" | `/parallax:why-score` |
+| "What does the [factor] factor measure?" | `/parallax:why-score` |
+| "Why did [stock]'s score drop?" | `/parallax:why-score` |
 | "Is [stock] a Buffett stock?" | `/parallax:investor` (buffett mode) |
 | "What would Buffett think of [stock]?" | `/parallax:investor` (buffett mode) |
 | "Apply Buffett factor profile" | `/parallax:investor` (buffett mode) |
@@ -55,6 +60,9 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "Credit risk / can [company] service its debt?" | `/parallax:credit` |
 | "Resolve ticker / find symbol" | `search_stocks` (free) |
 | "I found a bug / feature request" | `submit_feedback` |
+| "What can Parallax do?" / no specific ask | `/parallax:start` |
+
+Note `/parallax:explain` is drawdown attribution, not score methodology — score explanations are `/parallax:why-score`. `explain_methodology` is the raw tool behind the latter; prefer the command when the user wants an explanation rather than a definition.
 
 Default for any ambiguous stock question: `get_peer_snapshot`.
 Default for any investor/legend/Buffett/Greenblatt/Klarman/Soros/Magic Formula/margin-of-safety question: `/parallax:investor`.

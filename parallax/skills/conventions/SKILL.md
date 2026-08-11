@@ -43,13 +43,25 @@ Do **not** pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explici
 
 If the **first** tool batch of a session returns empty or interrupted, treat it as an MCP schema-registration race, not missing data: re-fire the full batch once before concluding "no data." This is distinct from the per-tool empty-output retry below.
 
+## Validation Before Reporting Done
+
+The schema-race rule above guards the *opening* of a workflow. This one guards its *close*. Before presenting any Parallax workflow as complete:
+
+1. **Data integrity — empty ≠ done.** Confirm the batch returned real data rather than an unresolved init race. A section that rendered because the tool returned nothing is not a finished section; it is an unreported failure.
+2. **Integrity surfaces actually rendered.** Where a run produced a ⚠ MISMATCH table, a degraded-coverage note, or an "Analysis pending" marker, verify that text is present in the output you are about to send. Do not assume it rendered because the rule says it should — and never suppress one to make a workflow look clean.
+3. **Flag, don't omit.** Integrity failures appear explicitly in the output. Silently dropping a failed section is the one unacceptable outcome.
+
+A workflow that produced output is not thereby a workflow that succeeded.
+
 ## Cross-Validation
 
 After any scoring call, cross-check the company name against `get_company_info`. Field mapping: `get_peer_snapshot` returns `target_company` at top level (NOT `name` on peer rows — those refer to each peer). `quick_portfolio_scores` returns `company_name` per holding row. Extra caution for `.HK`, `.T`, `.TW`, `.KS` codes.
 
 **On mismatch:**
 - **Single-stock verdict flows** (stock, investor, credit, deep-dive): refuse to render the verdict; show both names and ask the user to confirm the intended company.
-- **Portfolio/aggregate flows**: exclude the mismatched holding from all aggregate factor calculations, do not display its per-position scores, and list it in a ⚠ MISMATCH integrity table. Attempt re-resolution via `search_stocks` + individual `get_peer_snapshot` once; if it still mismatches, it stays excluded.
+- **Portfolio/aggregate flows**: exclude the mismatched holding from all aggregate **factor** calculations, do not display its per-position scores, and list it in a ⚠ MISMATCH integrity table. Attempt re-resolution via `search_stocks` + individual `get_peer_snapshot` once; if it still mismatches, it stays excluded.
+
+**Exception — concentration is computed over the original holdings.** Weight concentration, sector concentration, and position-count metrics are structural properties of the book the user actually holds, not of the subset Parallax could score. Dropping a mismatched holding from the denominator understates concentration and can hide the very risk the flag exists to catch. Exclude mismatches from factor aggregates; keep them in concentration denominators, and note that a concentration figure includes positions whose scores could not be verified.
 
 Never render scores from a mismatched mapping.
 
@@ -92,6 +104,23 @@ For single-stock or portfolio analysis, determine relevant markets from RIC suff
 4. Cap at 3 markets (single stock or portfolio).
 
 If `list_macro_countries` fails, derive from RIC suffixes: `.O`/`.N`/`.K` = US, `.T` = Japan, `.HK` = Hong Kong, `.L` = UK, `.DE` = Germany, `.SI` = Singapore.
+
+## Render Discipline
+
+Applies to every command unless that command overrides it.
+
+**Suppress the scaffolding.** Steps execute silently — no `**Step N**` labels, no "Batch A complete", no "Cross-validation passed" narration, no "Let me…" preamble. Begin the response with the rendered output itself.
+
+**Never suppress an integrity surface.** Dropping the scaffold must not drop the signal that was attached to it. These always survive into the final output, hoisted to where the reader will see them rather than left buried in a stage that got collapsed:
+
+- ⚠ MISMATCH tables and the count of excluded holdings
+- degraded-coverage notes (skipped symbols, fan-out caps, partial universe)
+- "Data unavailable" and "Analysis pending" markers
+- any note that a figure was computed on a reduced sample
+
+**Terminal elements are fixed and last:** the §9.2 AI-interaction disclosure immediately above the §9.1 disclaimer, in that order, at the end of the output. Nothing renders below the disclaimer.
+
+The failure this prevents is a clean-looking report whose cleanliness came from silently discarding the caveats. Verify per "Validation Before Reporting Done" above.
 
 ## §12 Information Framing (Advice Boundary)
 

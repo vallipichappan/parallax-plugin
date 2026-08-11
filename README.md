@@ -58,7 +58,10 @@ claude
 
 | Command | What it does |
 |---|---|
+| `/parallax:start` | Guided entry point — four-branch menu that routes to the right command when you don't have one in mind |
 | `/parallax:stock [ticker]` | Research brief — fundamentals + technicals lenses, peers, macro context, news, analyst views |
+| `/parallax:peers [ticker]` | Peer comparison — factor matrix across the peer group, score trajectories, relative price performance |
+| `/parallax:why-score [ticker] [question]` | Plain-language score explanation — why a stock scores this way, what a factor measures, why it moved |
 | `/parallax:portfolio [holdings]` | Portfolio analysis with health flags, drill-down, and advisor mode |
 | `/parallax:explain [holdings]` | Drawdown attribution — why is my portfolio down, transient vs fundamental |
 | `/parallax:credit [ticker]` | Creditor's lens — Altman Z, leverage/coverage/liquidity thresholds, quality early-warning |
@@ -74,7 +77,11 @@ claude
 ## Examples
 
 ```
+/parallax:start
 /parallax:stock AAPL
+/parallax:peers NVDA
+/parallax:why-score AAPL "why is the value score so low?"
+/parallax:why-score "what does the defensive factor measure?"
 /parallax:portfolio AAPL 50%, MSFT 50%
 /parallax:explain AAPL 30%, MSFT 40%, SPY 30%
 /parallax:credit F

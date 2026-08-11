@@ -1,7 +1,7 @@
 {
   "name": "parallax",
-  "version": "1.2.0",
-  "description": "End-to-end investment research workflows powered by Parallax factor scores, macro analysis, and AI synthesis. Unlike data-access plugins, Parallax delivers structured verdicts — a single command produces a stock brief, portfolio health check, drawdown attribution, credit lens, earnings quality report, halal compliance screen, or AI investor profile analysis (Buffett, Greenblatt, Klarman, Soros, or consensus across all four) with cross-validated data, parallel execution, and graceful fallbacks built in. 12 commands covering stock analysis, portfolio diagnostics, drawdown attribution, credit assessment, ETF intelligence, thematic screening, macro outlook, Shariah compliance, AI investor profiles, scenario analysis, and rebalancing.",
+  "version": "1.3.0",
+  "description": "End-to-end investment research workflows powered by Parallax factor scores, macro analysis, and AI synthesis. Unlike data-access plugins, Parallax delivers structured verdicts — a single command produces a stock brief, peer comparison, portfolio health check, drawdown attribution, credit lens, earnings quality report, halal compliance screen, or AI investor profile analysis (Buffett, Greenblatt, Klarman, Soros, or consensus across all four) with cross-validated data, parallel execution, and graceful fallbacks built in. 15 commands covering stock analysis, peer comparison, score explanation, portfolio diagnostics, drawdown attribution, credit assessment, ETF intelligence, thematic screening, macro outlook, Shariah compliance, AI investor profiles, scenario analysis, and rebalancing — plus a guided entry point.",
   "homepage": "https://chicago.global",
   "author": {
     "name": "Chicago Global Capital",

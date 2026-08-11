@@ -25,7 +25,7 @@ Gate before any scoring: classify each holding per the asset-class-routing skill
 ## Phase 2b — Assess Portfolio Exposure (after 2a)
 
 In parallel:
-- `analyze_portfolio` with `portfolio=[{date, symbol, weight}]`, `fields=["concentration"]` — sector/factor exposures (no `holdings`/`lens` params exist). May exceed 180K chars; fall back to `check_portfolio_redundancy` if truncated.
+- `analyze_portfolio` with `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` — sector exposures (no `holdings`/`lens` params exist; there is no `factor_exposures` field — do not pass one). `fields` is a passthrough, so invalid names fail silently; use only names from the `response-shapes` skill. May exceed 180K chars; fall back to `check_portfolio_redundancy` if truncated.
 - `get_score_analysis` for each **equity** holding (server-default window) — current trajectories. **Fan-out cap:** at >20 holdings, cover top-20 by weight plus any flagged; list skipped symbols in a degraded-coverage note.
 
 Then: `get_assessment` with prompt describing the scenario, listing each holding with sector/factor profile, asking: "Rank these holdings from most-exposed to least-exposed. For each, explain the transmission mechanism (direct revenue, supply chain, regulatory, sentiment)." Exclude ⚠ MISMATCH holdings from the prompt — mismatched holdings with empty profiles produce hallucinated factor profiles in the assessor's output. Poll per the async-jobs skill; wait cap applies.
@@ -54,3 +54,7 @@ Then: `get_assessment` with prompt describing the scenario, listing each holding
 - **Confidence & Caveats** — uncertainty level, rotation risks
 
 Render the AI-interaction disclosure per the conventions skill §9.2, then end with the standard disclaimer from the conventions skill §9.1 plus the sanctioned scenario addition: *"Scenario outputs are hypothetical, forward-looking assessments and are inherently uncertain."*
+
+## Render discipline
+
+Apply the Render Discipline section of the conventions skill: suppress step scaffolding, hoist every integrity surface (⚠ MISMATCH rows, degraded-coverage notes, "Data unavailable" / "Analysis pending" markers) into the final output, and close with the §9.2 disclosure immediately above the §9.1 disclaimer.

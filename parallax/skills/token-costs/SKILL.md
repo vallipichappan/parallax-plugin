@@ -10,11 +10,13 @@ description: Per-tool token costs and cost-optimal routing rules for Parallax co
 | Tokens | Tools |
 |---|---|
 | **0 (free)** | `explain_methodology`, `search_stocks`, `search_etfs`, `export_price_series`, `get_docs`, `list_docs` |
-| **1 each** | `get_company_info`, `get_peer_snapshot`, `get_financials` (per statement), `get_stock_outlook` (per aspect), `get_score_analysis`, `export_peer_comparison`, `list_macro_countries`, `get_telemetry` |
+| **1 each** | `get_company_info`, `get_peer_snapshot`, `get_financials` (per statement), `get_stock_outlook` (per aspect), `get_score_analysis`, `export_peer_comparison`, `list_macro_countries`, `get_telemetry`, `etf_profile`, `etf_daily_price` |
 | **1 per holding** | `quick_portfolio_scores`, `check_portfolio_redundancy` |
 | **5 each** | `build_stock_universe`, `get_news_synthesis`, `get_technical_analysis`, `get_financial_analysis`, `analyze_portfolio`, `macro_analyst`, `check_macro_health` |
 | **10 each** | `get_stock_report`, `get_assessment` |
-| **UNVERIFIED** | `etf_profile`, `etf_holdings`, `etf_daily_price` — costs not confirmed against the vendor contract; do not publish confident numeric estimates for ETF-touching workflows |
+| **UNVERIFIED** | `etf_holdings` — cost not confirmed; do not publish a confident numeric estimate for a workflow that calls it |
+
+`etf_profile` and `etf_daily_price` were measured at 1 token on 2026-07-28, so ETF-touching workflows now publish real subtotals. Only `etf_holdings` remains unpriced.
 
 ## Routing Rules
 
@@ -35,11 +37,11 @@ Estimates assume no cache hits and `export_price_series` at 0 tokens.
 | `/parallax:portfolio` (checkup) | ~36 |
 | `/parallax:portfolio` (advisor mode) | ~105 |
 | `/parallax:deep-dive` | ~45 |
-| `/parallax:explain` | ~35-50 for a 5-holding book (3/holding + macro + news for top 3 detractors; ETF probes UNVERIFIED) |
+| `/parallax:explain` | ~45-50 for a 5-holding book (3/holding + macro + news for top 3 detractors + one `etf_profile` probe per holding) |
 | `/parallax:credit` | ~12-18 |
 | `/parallax:macro` | ~12 single market (+5 per additional market, +13 with equity opportunities) |
 | `/parallax:universe` | ~36 |
-| `/parallax:etf` | UNVERIFIED (etf_* tool costs unconfirmed) |
+| `/parallax:etf` | ~2 single ETF, ~1 per ticker for a compare. `etf_profile` and `etf_daily_price` are 1 each; add an unpriced `etf_holdings` call for single-ETF and overlap modes |
 | `/parallax:screen` (halal) | ~8 |
 | `/parallax:screen` (quality) | ~24 |
 | `/parallax:scenario` | ~68 |

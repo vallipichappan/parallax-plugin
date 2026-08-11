@@ -31,8 +31,8 @@ Optional inputs: `target` (e.g., "reduce concentration, improve quality") and `c
 
 | Tool | Parameters | Notes |
 |---|---|---|
-| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["performance","risk"]` | Returns/risk. No `holdings`/`lens` params exist. May exceed 180K chars — fall back to Batch A alternatives if truncated |
-| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration"]` | Concentration analysis |
+| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["portfolio_summary","performance_metrics","rolling_metrics","drawdown_analysis"]` | Returns/risk. No `holdings`/`lens` params exist. `fields` is a passthrough — invalid names fail silently, so use only names from the `response-shapes` skill. May exceed 180K chars — fall back to Batch A alternatives if truncated |
+| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` | Concentration analysis |
 | `quick_portfolio_scores` | equity holdings | Factor scores (fallback ladder per health-flags skill; cross-validate per conventions — mismatches excluded, ⚠ MISMATCH table) |
 | `check_portfolio_redundancy` | holdings list | Overlap detection |
 | `list_macro_countries` | — | Market coverage |
@@ -74,3 +74,7 @@ After Batch A completes, render one summary line: "N/M holdings scored; sections
 - **Implementation Notes** — sequencing considerations, liquidity caveats (not validated against ADV/borrow)
 
 Render the AI-interaction disclosure per the conventions skill §9.2 immediately above the disclaimer, then the standard disclaimer verbatim from the conventions skill §9.1.
+
+## Render discipline
+
+Apply the Render Discipline section of the conventions skill: suppress step scaffolding, hoist every integrity surface (⚠ MISMATCH rows, degraded-coverage notes, "Data unavailable" / "Analysis pending" markers) into the final output, and close with the §9.2 disclosure immediately above the §9.1 disclaimer.

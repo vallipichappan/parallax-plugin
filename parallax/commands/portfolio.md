@@ -43,8 +43,10 @@ Checkup Batches A, B, C still execute. Advisor mode adds the following:
 
 | Tool | Parameters | Notes |
 |---|---|---|
-| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["performance","risk"]` | Returns/risk. May exceed 180K chars — fall back to checkup path if truncated |
-| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration"]` | Sector/factor concentration. There is no `holdings` or `lens` parameter — the tool takes a dated `portfolio` array plus a `fields` subset |
+| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["portfolio_summary","performance_metrics","rolling_metrics","drawdown_analysis"]` | Returns/risk. May exceed 180K chars — fall back to checkup path if truncated |
+| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` | Sector/factor concentration. There is no `holdings` or `lens` parameter — the tool takes a dated `portfolio` array plus a `fields` subset |
+
+`fields` is a **direct passthrough** to the API, not a validated enum — an invalid name fails silently rather than erroring. Use only names from the `response-shapes` skill.
 
 If the user names a benchmark: ETFs route through `etf_daily_price` (plain ticker), equities through `export_price_series` (RIC) — mixing them silently fails empty.
 
@@ -67,3 +69,7 @@ News: `get_news_synthesis` for holdings >10% weight AND flagged, cap 5. Async �
 **Output:** Performance vs Benchmark → Health badge → Scorecard → Flags → ⚠ MISMATCH table (if any) → Per-Holding Analysis → Macro Context → Suitability Assessment → Prioritized Classifications (per health-flags skill, with §12 informational preface).
 
 Render the AI-interaction disclosure per the conventions skill §9.2 immediately above the disclaimer, then the standard disclaimer verbatim from the conventions skill §9.1.
+
+## Render discipline
+
+Apply the Render Discipline section of the conventions skill: suppress step scaffolding, hoist every integrity surface (⚠ MISMATCH rows, degraded-coverage notes, "Data unavailable" / "Analysis pending" markers) into the final output, and close with the §9.2 disclosure immediately above the §9.1 disclaimer.

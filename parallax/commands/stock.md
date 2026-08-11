@@ -59,3 +59,7 @@ Apply fallback rules from the conventions skill for missing data.
 - **Bottom Line** — balanced 2-sentence summary. When the two lenses diverge, name the divergence explicitly — never average it into a blended take. Not a recommendation.
 
 Render the AI-interaction disclosure per the conventions skill §9.2 immediately above the disclaimer, then the standard disclaimer verbatim from the conventions skill §9.1.
+
+## Render discipline
+
+Apply the Render Discipline section of the conventions skill: suppress step scaffolding, hoist every integrity surface (⚠ MISMATCH rows, degraded-coverage notes, "Data unavailable" / "Analysis pending" markers) into the final output, and close with the §9.2 disclosure immediately above the §9.1 disclaimer.

@@ -23,14 +23,14 @@ Infer the lookback from the user's statement ("this month" → ~21 trading days,
 - `{"error": "No profile data found", ...}` → **equity** → route through `export_price_series`.
 - Non-error profile → **ETF** → route through `etf_daily_price`.
 
-This adds N calls at UNVERIFIED token cost (one per holding).
+This adds N calls at 1 token each (one per holding).
 
 ### Step 1b — Pull price history (parallel, split by asset class)
 
 Fire all of the following in a single tool-call turn:
 
 - Each EQUITY holding → `export_price_series` with the RIC (FREE). Use close prices.
-- Each ETF holding → `etf_daily_price` with the plain ticker. Returns per-row `date` + `changepercent`. Token cost UNVERIFIED.
+- Each ETF holding → `etf_daily_price` with the plain ticker. Returns per-row `date` + `changepercent`. 1 token.
 
 ### Step 1c — Compute attribution + halt rule
 
@@ -89,7 +89,7 @@ Portfolio-level verdict: majority of weighted holdings "Transient" → the drawd
 
 ## Render
 
-Begin the response immediately with the rendered report — no preamble. Degraded-state notes render inside the affected section, never as a preamble.
+Begin the response immediately with the rendered report — no preamble. Degraded-state notes render inside the affected section (they must survive into the output, but this command places them in context rather than hoisting them to the top).
 
 ## Output Format
 
@@ -104,3 +104,7 @@ Begin the response immediately with the rendered report — no preamble. Degrade
 Keep the tone calm and explanatory. The user is worried — reduce anxiety with clarity, not jargon.
 
 Render the AI-interaction disclosure per the conventions skill §9.2 immediately above the disclaimer, then the standard disclaimer verbatim from the conventions skill §9.1.
+
+## Render discipline
+
+Apply the Render Discipline section of the conventions skill, with the section-local placement noted under Render above.
