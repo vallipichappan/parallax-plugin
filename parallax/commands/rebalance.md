@@ -31,7 +31,7 @@ Optional inputs: `target` (e.g., "reduce concentration, improve quality") and `c
 
 | Tool | Parameters | Notes |
 |---|---|---|
-| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["portfolio_summary","performance_metrics","rolling_metrics","drawdown_analysis"]` | Returns/risk. No `holdings`/`lens` params exist. `fields` is a passthrough — invalid names fail silently, so use only names from the `response-shapes` skill. May exceed 180K chars — fall back to Batch A alternatives if truncated |
+| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["portfolio_summary","performance_metrics","rolling_metrics","drawdown_analysis"]` | Returns/risk. No `holdings`/`lens` params exist. `fields` is a passthrough — an invalid name is not rejected, so check `result._meta.invalid_fields` after the call and use only names from the `response-shapes` skill. May exceed 180K chars — fall back to Batch A alternatives if truncated |
 | `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` | Concentration analysis |
 | `quick_portfolio_scores` | equity holdings | Factor scores (fallback ladder per health-flags skill; cross-validate per conventions — mismatches excluded, ⚠ MISMATCH table) |
 | `check_portfolio_redundancy` | holdings list | Overlap detection |

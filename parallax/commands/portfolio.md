@@ -46,7 +46,7 @@ Checkup Batches A, B, C still execute. Advisor mode adds the following:
 | `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["portfolio_summary","performance_metrics","rolling_metrics","drawdown_analysis"]` | Returns/risk. May exceed 180K chars — fall back to checkup path if truncated |
 | `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` | Sector/factor concentration. There is no `holdings` or `lens` parameter — the tool takes a dated `portfolio` array plus a `fields` subset |
 
-`fields` is a **direct passthrough** to the API, not a validated enum — an invalid name fails silently rather than erroring. Use only names from the `response-shapes` skill.
+`fields` is a **direct passthrough** to the API, not a validated enum — an invalid name is not rejected, it is simply absent from the response. Check `result._meta.invalid_fields` after the call; a non-empty list is a caller error, not missing data. Use only names from the `response-shapes` skill.
 
 If the user names a benchmark: ETFs route through `etf_daily_price` (plain ticker), equities through `export_price_series` (RIC) — mixing them silently fails empty.
 

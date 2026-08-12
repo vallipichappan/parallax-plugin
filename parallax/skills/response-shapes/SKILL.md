@@ -7,7 +7,11 @@ description: Valid field names and response-block contracts for Parallax tools t
 
 Two Parallax tools accept a `fields` subset to cap response size. In both, `fields` is a **direct passthrough to the API**, not a validated enum.
 
-**This is the failure mode that matters:** an invalid field name does not raise. The call succeeds, the requested block simply never appears, and a workflow downstream reports "data unavailable" for something that was never actually asked for correctly. Nothing in the transcript looks wrong. Always take field names from the tables below rather than inferring them from a section heading or a prose description of what you want.
+**This is the failure mode that matters:** an invalid field name does not raise. The call returns `success: true`, the requested block simply never appears, and a workflow downstream reports "data unavailable" for something that was never actually asked for correctly. Always take field names from the tables below rather than inferring them from a section heading or a prose description of what you want.
+
+**`analyze_portfolio` tells you which names were wrong — read it.** The response wraps its payload under a top-level `result` key, and `result._meta` carries `fields_requested`, `fields_returned`, and `invalid_fields`. Verified 2026-08-11: requesting `["portfolio_summary","factor_exposures","performance","risk","concentration"]` returned `success: true`, `fields_returned: ["portfolio_summary"]`, and `invalid_fields` naming all four bad names.
+
+**Runtime rule:** after any `analyze_portfolio` call, check `result._meta.invalid_fields`. A non-empty list is a caller error in this plugin, not missing data. Say so plainly rather than rendering the section as unavailable — the two look identical in output and have opposite causes.
 
 ## `analyze_portfolio`
 
