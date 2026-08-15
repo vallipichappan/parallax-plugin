@@ -37,7 +37,7 @@ Resolve symbols via `search_stocks` (free) per the conventions skill.
 
 1. Run single-stock check for each holding. **Cap at 20 holdings** (top by weight, plus any the user names); list skipped holdings in a coverage note.
 2. `check_portfolio_redundancy` on compliant holdings only — apply the redundancy sanity-check only at N≥8 (below that, single-sector concentration is a natural screening outcome, not a tool defect).
-3. For non-compliant: `build_stock_universe` by sector for alternatives → screen alternatives → `get_peer_snapshot` on compliant ones (drop any candidate failing cross-validation per the conventions skill).
+3. For non-compliant: `build_stock_universe` by sector for alternatives → screen alternatives → call `get_peer_snapshot` and `get_company_info` on compliant ones. Drop candidates failing cross-validation per the conventions skill.
 
 ### Output
 

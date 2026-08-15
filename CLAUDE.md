@@ -6,19 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **Claude Code plugin** (not an application) distributed via the plugin marketplace. It wraps the remote Parallax MCP server (`https://mcp.chicago.global/api/mcp`) with opinionated slash commands and skills so end users get structured investment-research verdicts from a single command.
 
-There is **no build step, no test runner, and no package manager** — the repo is pure markdown + JSON config consumed directly by Claude Code.
+There is **no build step and no package manager**. The product remains markdown and JSON consumed by Claude Code. Python standard-library tests validate the plugin contracts and perimeter scanner.
 
 ## Layout
 
 ```
 .claude-plugin/marketplace.json   Marketplace manifest (points at ./parallax)
+.github/workflows/validate.yml    PR gate: tests, public-safe perimeter scan, strict loader validation
 parallax/
-  .claude-plugin/plugin.json      Plugin manifest (name, version, user_config for PARALLAX_API_KEY)
+  .claude-plugin/plugin.json      Plugin manifest (name, version, userConfig for PARALLAX_API_KEY)
   .mcp.json                       Remote MCP server config (HTTP + Bearer ${PARALLAX_API_KEY})
   commands/*.md                   15 slash commands (start, stock, peers, why-score, portfolio, explain, ...)
   skills/<name>/SKILL.md          9 shared skills commands rely on (subdirectory layout is REQUIRED —
                                   the plugin loader only discovers skills/<name>/SKILL.md, never flat files)
 scripts/perimeter-scan.py         Pre-push perimeter guard (see Porting, below)
+tests/                            Standard-library regression and contract tests
 docs/positioning.md               Marketing/positioning reference
 ```
 
@@ -76,16 +78,18 @@ Consequences for anything ported here:
 - **Check `PERIMETER.md` first.** Skills marked `sanitize-required`, `internal-only`, or `claude-only` do not come across. A skill absent from that table defaults to `claude-only` by its own Process section — absence is not permission.
 - **Translate, don't transplant.** Upstream calls tools as `mcp__claude_ai_Parallax__*` behind a `ToolSearch` preflight and JIT-loads `_parallax/…` by path. This plugin bundles its own `.mcp.json`, uses bare tool names, and references `parallax/skills/<name>/SKILL.md` from command prose. Ports that depend on house-view files or Python helpers cannot come across at all — this repo has no build step.
 - **Upstream is not automatically right.** Several defects here were inherited by copying it. Where this repo is already correct — the `target_company` cross-validation field, 0-10 credit thresholds — do not "resync" backwards.
-- **Run `python3 scripts/perimeter-scan.py` before every push.** Stage your changes first; it scans tracked files only.
+- **Run `python3 scripts/perimeter-scan.py` before every push.** Stage the release files first. The default scan reads their Git-index bytes, not worktree bytes. After committing, use `python3 scripts/perimeter-scan.py --source head`.
 
 ## Manual Verification
 
-There is no automated test suite. To verify a change:
+To verify a change:
 
-1. Install the plugin locally: `claude plugin install parallax@parallax-plugin` (after `marketplace add` pointing at the local path).
-2. Run the affected command against a representative symbol and confirm the tool sequence fires as written.
-3. Confirm the cross-validation gate, fallback rules, and disclaimer text fire as specified.
-4. Run `python3 scripts/perimeter-scan.py` — exit 0 required.
+1. Run `python3 -m unittest discover -s tests -p 'test_*.py'`.
+2. Run `claude plugin validate --strict parallax` and validate `.claude-plugin/marketplace.json` separately.
+3. Install the plugin locally: `claude plugin install parallax@parallax-plugin` after `marketplace add` points at the local path.
+4. Run the affected command against a representative symbol and confirm the tool sequence fires as written.
+5. Confirm the cross-validation gate, fallback rules, and disclaimer text fire as specified.
+6. Stage the release candidate and run `python3 scripts/perimeter-scan.py` — exit 0 required.
 
 **A referenced skill is a directive, not a guarantee.** Commands delegate rules by prose reference, and nothing enforces that the referenced skill was actually loaded and applied. When verifying, check that the *behavior* the skill specifies appears in the output — not merely that the command names the skill.
 

@@ -15,27 +15,30 @@ Never pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explicitly �
 
 Resolve the symbol with `search_stocks` first; fall back to the conventions skill suffix table (plain `AAPL` → `AAPL.O`). Exchange suffix is load-bearing.
 
-## Batch A — Core financials (parallel, 4 tokens)
+## Batch A — Core financials (parallel, 6 tokens)
 
 | Tool | Parameters | Extracts |
 |---|---|---|
-| `get_financials` | statement="balance_sheet" | Total debt, equity, total assets, working capital |
+| `get_financials` | statement="income" | Revenue, EBIT, EBITDA, interest expense |
+| `get_financials` | statement="balance_sheet" | Total debt, equity, total assets, total liabilities, working capital, retained earnings |
 | `get_financials` | statement="cash_flow" | Operating CF, capex, FCF |
 | `get_financials` | statement="ratios" | D/E, Debt/EBITDA, interest coverage, margins, peer medians |
 | `get_peer_snapshot` | `symbol` | D/E peer median, factor scores |
-| `get_company_info` | `symbol` | Ground-truth name for cross-validation, sector, market cap |
+| `get_company_info` | `symbol` | Ground-truth name for cross-validation, sector, Market Cap |
 
 **Cross-validation (non-bypassable).** After `get_peer_snapshot`, compare the top-level `target_company` against `get_company_info.name` — peer rows carry their own `name` and refer to each peer, not the target. On mismatch, halt: do not render scores or peer-relative flags from a mismatched mapping.
 
 Derive: **Leverage** (Debt/EBITDA, Debt/Equity, Debt/Assets vs peer medians) · **Coverage** (interest coverage, EBITDA/interest) · **Liquidity** (current ratio, quick ratio) · **Profitability** (EBITDA, EBIT, FCF margins).
 
-## Batch B — Solvency, trend, macro (parallel)
+## Batch B — Solvency, trend, macro (launch with Batch A)
+
+Batch B has no dependency on Batch A beyond symbol resolution. Launch both batches in the same tool-call turn.
 
 | Tool | Parameters | Purpose |
 |---|---|---|
 | `get_financial_analysis` | `symbol` | Solvency assessment — async, 2-5 min |
 | `get_score_analysis` | `symbol` | Quality-score trajectory (52w server default) |
-| `get_telemetry` | — | Market regime; no symbol parameter |
+| `get_telemetry` | fields: regime_tag, signals, commentary.headline, commentary.mechanism, divergences | Market regime; no symbol parameter |
 
 `get_financial_analysis` is async — never retry it, poll `check_job_status` per the async-jobs skill, and never let it block the rest of the report. On wait-cap expiry render "Analysis pending — service temporarily unavailable" in the Solvency section and continue with every other metric.
 

@@ -19,7 +19,7 @@ argument-hint: "[investment theme, e.g. 'profitable AI infrastructure companies'
 
 ## Step 2 — Score Top Picks
 
-For top N results (default 10): call `get_peer_snapshot` for each in parallel to get factor scores. Cross-validate per the conventions skill — drop mismatched candidates from the pool.
+For top N results (default 10): call `get_peer_snapshot` and `get_company_info` for each in parallel. Cross-validate per the conventions skill and drop mismatched candidates from the pool.
 
 ## Step 3 — Rank & Select
 
@@ -37,7 +37,7 @@ Adjust weights based on scores, redundancy flags, and sector balance. Call `quic
 
 ## Step 6 — Validate (conditional)
 
-`analyze_portfolio` with `portfolio=[{date, symbol, weight}]` and a `fields` subset on the final allocation to confirm it behaves as intended (no `holdings`/`lens` params exist). If the response is truncated (>180K chars), rely on Step 4-5 outputs — and disclose the fallback scope: rolling metrics, drawdown, contribution attribution, and performance time series are NOT validated on that path.
+`analyze_portfolio` with `portfolio=[{date, symbol, weight}]` and `fields=["portfolio_summary","performance_metrics","drawdown_analysis","concentration_metrics","sector_allocation"]` on the final allocation to confirm it behaves as intended. No `holdings` or `lens` parameters exist. Check `result._meta.invalid_fields`; any entry is a caller error. If the response is truncated (>180K chars), rely on Step 4-5 outputs — and disclose the fallback scope: rolling metrics, drawdown, contribution attribution, and performance time series are NOT validated on that path.
 
 ## Output
 

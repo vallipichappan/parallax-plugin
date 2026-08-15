@@ -28,7 +28,7 @@ Use summary mode here because the macro command needs the full picture. Other co
 ## Batch C — Score top picks (conditional, after B)
 
 If equity screening was done:
-1. `get_peer_snapshot` for top 5 universe results (parallel, cross-validated per the conventions skill — drop mismatches). Note: rankings cover listed equities with Parallax factor coverage only — funds/OEICs are not screened.
+1. Call `get_peer_snapshot` and `get_company_info` for the top 5 universe results in parallel. Cross-validate per the conventions skill and drop mismatches. Rankings cover listed equities with Parallax factor coverage only — funds/OEICs are not screened.
 2. `get_score_analysis` for top 3 (parallel, server-default window).
 
 ## Output

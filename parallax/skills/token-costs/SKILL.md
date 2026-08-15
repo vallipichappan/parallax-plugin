@@ -38,9 +38,9 @@ Estimates assume no cache hits and `export_price_series` at 0 tokens.
 | `/parallax:portfolio` (advisor mode) | ~105 |
 | `/parallax:deep-dive` | ~45 |
 | `/parallax:explain` | ~45-50 for a 5-holding book (3/holding + macro + news for top 3 detractors + one `etf_profile` probe per holding) |
-| `/parallax:credit` | ~12-18 |
-| `/parallax:macro` | ~12 single market (+5 per additional market, +13 with equity opportunities) |
-| `/parallax:universe` | ~36 |
+| `/parallax:credit` | ~13-19 |
+| `/parallax:macro` | ~12 single market (+5 per additional market, +18 with equity opportunities) |
+| `/parallax:universe` | ~46 with 10 cross-validated candidates |
 | `/parallax:etf` | ~2 single ETF, ~1 per ticker for a compare. `etf_profile` and `etf_daily_price` are 1 each; add an unpriced `etf_holdings` call for single-ETF and overlap modes |
 | `/parallax:screen` (halal) | ~8 |
 | `/parallax:screen` (quality) | ~24 |
@@ -51,6 +51,6 @@ Estimates assume no cache hits and `export_price_series` at 0 tokens.
 | `/parallax:investor` (greenblatt universe) | ~35-40 |
 | `/parallax:investor` (klarman) | ~5-7 |
 | `/parallax:investor` (soros single-ticker) | ~25-30 |
-| `/parallax:investor` (soros basket) | ~25-40 |
+| `/parallax:investor` (soros basket) | ~28-55 |
 | `/parallax:investor` (consensus single) | ~70-80 |
 | `/parallax:investor` (consensus basket-5) | ~250-310 (Greenblatt universe pull may amortize across tickers; treat as upper bound) |

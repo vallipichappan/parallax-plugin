@@ -112,8 +112,8 @@ This output is an AI-inferred synthesis produced by the Parallax AI Investor Pro
 
 Report the target's observed rank and percentile. Exclude financials and utilities by default. EY computed as 1/enterprise_value_ebit.
 
-**Tool sequence (universe):** `build_stock_universe` (5), `get_financials` (ratios) per candidate (1 each — this dominates), `get_peer_snapshot`. ~35-40 tokens.
-**Tool sequence (ticker-check):** `get_company_info`, `build_stock_universe` (5), `get_financials` (ratios) per candidate (1 each), `get_peer_snapshot`. ~35-40 tokens.
+**Tool sequence (universe):** `build_stock_universe` (5), `get_financials` (ratios) per candidate (1 each — this dominates). ~35-40 tokens. Do not add `get_peer_snapshot` solely for pedagogy; it does not affect the Magic Formula ranking.
+**Tool sequence (ticker-check):** `get_company_info`, `build_stock_universe` (5), `get_financials` (ratios) per candidate (1 each). ~35-40 tokens.
 
 ---
 
@@ -150,7 +150,7 @@ Compute net cash from the balance sheet (cash - total debt), NOT from the ratios
 3. `get_telemetry` for cross-market regime divergence
 4. Identify regime themes where macro and telemetry agree
 5. `build_stock_universe` per theme (sector-scoped queries — same timeout caveat as Greenblatt)
-6. `get_peer_snapshot` for the leaders per theme
+6. `get_peer_snapshot` plus `get_company_info` for the leaders per theme, with identity mismatches dropped
 
 ### Single-ticker mode (one ticker)
 
@@ -167,7 +167,7 @@ Same macro workflow (steps 1-4), then a dual-channel exposure check:
 
 **Verdict:** both channels flagged → `match`; one flagged → `partial_match`; neither → `no_match`. **`match` is NEVER reached when Channel B is UNAVAILABLE** — maximum is `partial_match`. These are discrete channels, so per the Verdict Sensitivity Guard there is no flip point to describe.
 
-**Tool sequence (basket):** `list_macro_countries`, `macro_analyst` per market, `get_telemetry`, `build_stock_universe` per theme, `get_peer_snapshot`. ~25-40 tokens.
+**Tool sequence (basket):** `list_macro_countries`, `macro_analyst` per market, `get_telemetry`, `build_stock_universe` per theme, `get_peer_snapshot`, `get_company_info`. ~28-55 tokens.
 **Tool sequence (single-ticker):** Same + `get_company_info`. ~25-30 tokens.
 
 ---

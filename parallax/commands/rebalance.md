@@ -31,6 +31,7 @@ Optional inputs: `target` (e.g., "reduce concentration, improve quality") and `c
 
 | Tool | Parameters | Notes |
 |---|---|---|
+| `get_company_info` | each equity holding | Ground-truth name for scoring cross-validation |
 | `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["portfolio_summary","performance_metrics","rolling_metrics","drawdown_analysis"]` | Returns/risk. No `holdings`/`lens` params exist. `fields` is a passthrough — an invalid name is not rejected, so check `result._meta.invalid_fields` after the call and use only names from the `response-shapes` skill. May exceed 180K chars — fall back to Batch A alternatives if truncated |
 | `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` | Concentration analysis |
 | `quick_portfolio_scores` | equity holdings | Factor scores (fallback ladder per health-flags skill; cross-validate per conventions — mismatches excluded, ⚠ MISMATCH table) |
@@ -54,6 +55,8 @@ After Batch A completes, render one summary line: "N/M holdings scored; sections
    - **Reweight:** Concentration flag only, scores healthy
    - **Investigate:** Medium priority, ambiguous signal → suggest `/parallax:deep-dive`
 4. For trim candidates: `build_stock_universe` with portfolio factor profile theme → `get_peer_snapshot` for replacement candidates. Drop any candidate whose returned name fails the cross-validation check against `get_company_info` — never propose a replacement from a mismatched mapping.
+
+**Atomic sizing gate:** if any holding needed for sizing lacks a verified identity, score, weight, or required allocation input, do not render proposed weights or the before/after comparison. Name each failed component and offer the operator a choice to correct or remove it. A partial research summary may still render.
 
 ### Batch D — Validation
 

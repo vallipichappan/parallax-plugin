@@ -20,7 +20,14 @@ Both a scenario description and a portfolio are required — prompt for either i
 
 ## Phase 2a — Classify + ground-truth (after Phase 1)
 
-Gate before any scoring: classify each holding per the asset-class-routing skill (`etf_profile` as oracle) and cross-validate names per the conventions skill — **factor scores are equity-only**; firing `get_score_analysis` at ETFs silently returns nothing. Mismatched holdings go to a ⚠ MISMATCH table and are excluded from everything downstream.
+Gate before any trend scoring:
+
+1. Classify each holding with `etf_profile` per the asset-class-routing skill.
+2. For each equity, call `get_company_info` and `get_peer_snapshot` in parallel.
+3. Cross-validate `get_peer_snapshot.target_company` against `get_company_info.name` per the conventions skill.
+4. Put mismatches in a ⚠ MISMATCH table and exclude them from every downstream factor or assessment input.
+
+Factor scores are equity-only. Do not call `get_score_analysis` for an ETF.
 
 ## Phase 2b — Assess Portfolio Exposure (after 2a)
 
@@ -28,16 +35,16 @@ In parallel:
 - `analyze_portfolio` with `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` — sector exposures (no `holdings`/`lens` params exist; there is no `factor_exposures` field — do not pass one). `fields` is a passthrough, so an invalid name is not rejected — check `result._meta.invalid_fields` after the call and treat any entry as a caller error. Use only names from the `response-shapes` skill. May exceed 180K chars; fall back to `check_portfolio_redundancy` if truncated.
 - `get_score_analysis` for each **equity** holding (server-default window) — current trajectories. **Fan-out cap:** at >20 holdings, cover top-20 by weight plus any flagged; list skipped symbols in a degraded-coverage note.
 
-Then: `get_assessment` with prompt describing the scenario, listing each holding with sector/factor profile, asking: "Rank these holdings from most-exposed to least-exposed. For each, explain the transmission mechanism (direct revenue, supply chain, regulatory, sentiment)." Exclude ⚠ MISMATCH holdings from the prompt — mismatched holdings with empty profiles produce hallucinated factor profiles in the assessor's output. Poll per the async-jobs skill; wait cap applies.
+Rank holdings deterministically from sector exposure, weighted concentration, score direction, and the scenario's stated transmission channels. This provisional ranking feeds the final assessment after candidate validation.
 
 ## Phase 3 — Rotation Candidates (after Phase 2b)
 
-1. From the Phase 1 `build_stock_universe` results: `get_peer_snapshot` for top 5 candidates (parallel), cross-validated — drop mismatches from the pool.
+1. From the Phase 1 `build_stock_universe` results: call `get_peer_snapshot` and `get_company_info` for the top 5 candidates in parallel. Drop name mismatches from the pool.
 2. `get_financials` (statement="summary") for top 2-3 to verify fundamentals.
 
 ## Phase 4 — Action Plan (after Phase 3)
 
-`get_assessment` with comprehensive prompt incorporating: scenario + transmission mechanisms, macro regime, portfolio exposure ranking, replacement candidates. Ask for exposure-reduction classifications prioritized by urgency and magnitude. Poll with wait cap; if it expires, render the Phase 2b assessment findings with "Action-plan synthesis pending — service temporarily unavailable."
+Call `get_assessment` once with the scenario, transmission mechanisms, macro regime, deterministic exposure ranking, and validated candidates. Ask for exposure-reduction classifications prioritized by urgency and magnitude. Exclude ⚠ MISMATCH holdings. Poll with the wait cap; if it expires, render the deterministic Phase 2b findings with "Action-plan synthesis pending — service temporarily unavailable."
 
 ## Output
 

@@ -3,6 +3,7 @@
   "owner": {
     "name": "Chicago Global Capital"
   },
+  "description": "Institutional investment-research workflows powered by the Parallax MCP server.",
   "plugins": [
     {
       "name": "parallax",

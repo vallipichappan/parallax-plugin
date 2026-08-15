@@ -61,11 +61,11 @@ Call `get_score_analysis` per holding in parallel (no explicit `weeks` — serve
 
 ## Step 4 — Layer 3: Stock-specific
 
-For the **top 3 detractors** by weighted contribution, in parallel: `get_news_synthesis` and `get_peer_snapshot` (cross-validate as in Step 2).
+For the **top 3 detractors** by weighted contribution, call `get_news_synthesis` in parallel. Reuse the cross-validated `get_peer_snapshot` results from Step 2.
 
 `get_news_synthesis` is async — never retry it, poll `check_job_status` per the async-jobs skill, and never let it block the rest of the output. Overlap it with the macro reasoning and the price/score computations, and assemble those sections immediately. On wait-cap expiry, render "Analysis pending — service temporarily unavailable" inside Top Detractors.
 
-**A "Transient" verdict must not be finalized before the detractor's news resolves** (or its absence is confirmed). Step 5's provisional flag keys on whether a major event broke after the last score data point, which only the news reveals — calling "Transient — hold or add" on a freshly-adverse detractor is the exact failure that flag exists to prevent. If news is still pending, mark the affected divergence rows provisional-pending-news.
+**A "Transient" verdict must not be finalized before the detractor's news resolves** (or its absence is confirmed). Step 5's provisional flag keys on whether a major event broke after the last score data point, which only the news reveals. If news is still pending, mark the affected divergence rows provisional-pending-news.
 
 ## Step 5 — Score-vs-price divergence (the key insight)
 
@@ -73,19 +73,21 @@ For each holding compare the price change from Step 1 (daily, current) against t
 
 If a major event (earnings miss, indictment, regulatory action) occurred after the last score data point, scores may not yet reflect it. The classification still applies but must be flagged **provisional** for those holdings.
 
-| Price | Scores | Interpretation | Advice |
+Each row below is an analytical classification from threshold results. It is not an instruction.
+
+| Price | Scores | Interpretation | Neutral status |
 |---|---|---|---|
-| Down | Stable/Up | **Transient** — market mispricing, fundamentals intact | Hold or add |
-| Down | Down | **Fundamental** — deterioration confirmed by scores | Investigate, consider trim |
-| Down | Mixed | **Ambiguous** — some factors deteriorating, others stable | Monitor, dig deeper |
+| Down | Stable/Up | **Transient** — market mispricing, fundamentals intact | No deterioration flag |
+| Down | Down | **Fundamental** — deterioration confirmed by scores | Flagged for full-position review |
+| Down | Mixed | **Ambiguous** — some factors deteriorating, others stable | Flagged for further review |
 
 Portfolio-level verdict: majority of weighted holdings "Transient" → the drawdown is likely noise. Majority "Fundamental" → it reflects real deterioration.
 
-## Step 6 — Conditional advice
+## Step 6 — Classification context
 
 - **Transient:** fundamentals unchanged — cite the actual Quality/Defensive scores, name the driver (risk-off / factor rotation / sector selloff), reference the macro tactical outlook for reversal context.
-- **Fundamental:** name the holdings with deteriorating scores; for each suggest deeper analysis (`/parallax:deep-dive`), trim, or replacement. If the factor tilt is the problem, suggest rebalancing toward favored factors per the macro tactical outlook.
-- **Mixed:** separate transient holdings (hold) from fundamental ones (investigate), prioritized by weighted contribution to the loss.
+- **Fundamental:** name the holdings with deteriorating scores and flag each for further review. Offer `/parallax:deep-dive` as a research follow-up.
+- **Mixed:** separate holdings with no deterioration flag from holdings flagged for further review. Order them by weighted loss contribution.
 
 ## Render
 
@@ -99,7 +101,7 @@ Begin the response immediately with the rendered report — no preamble. Degrade
 - **Factor Exposure** — which tilts helped or hurt, and their connection to the current regime
 - **Top Detractors** — for each of the top 3: what happened, why, and whether scores agree with the price move
 - **The Key Question: Noise or Signal?** — portfolio-level verdict plus the per-holding divergence table (provisional rows flagged)
-- **What To Do** — conditional advice per Step 6
+- **Classification Implications** — neutral status context per Step 6
 
 Keep the tone calm and explanatory. The user is worried — reduce anxiety with clarity, not jargon.
 

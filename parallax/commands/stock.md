@@ -15,6 +15,7 @@ Fire all simultaneously once RIC is confirmed:
 
 | Tool | Parameters | Notes |
 |---|---|---|
+| `get_company_info` | `symbol` | Ground-truth name, sector, and market context |
 | `get_peer_snapshot` | `symbol` | Factor scores + peer ranking |
 | `get_financials` | `symbol`, statement="summary" | Revenue/income narrative |
 | `get_score_analysis` | `symbol` | Factor trend (server-default 52-week window) |

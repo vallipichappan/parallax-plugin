@@ -55,7 +55,7 @@ A workflow that produced output is not thereby a workflow that succeeded.
 
 ## Cross-Validation
 
-After any scoring call, cross-check the company name against `get_company_info`. Field mapping: `get_peer_snapshot` returns `target_company` at top level (NOT `name` on peer rows — those refer to each peer). `quick_portfolio_scores` returns `company_name` per holding row. Extra caution for `.HK`, `.T`, `.TW`, `.KS` codes.
+After any scoring call that returns a company name, cross-check that name against `get_company_info`. Field mapping: `get_peer_snapshot` returns `target_company` at top level (NOT `name` on peer rows — those refer to each peer). `quick_portfolio_scores` returns `company_name` per holding row. `get_score_analysis` has no company-name field; verify `data[0].symbol` against the requested RIC and use the workflow's already-resolved company identity. Extra caution for `.HK`, `.T`, `.TW`, `.KS` codes.
 
 **On mismatch:**
 - **Single-stock verdict flows** (stock, investor, credit, deep-dive): refuse to render the verdict; show both names and ask the user to confirm the intended company.

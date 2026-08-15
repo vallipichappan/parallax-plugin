@@ -27,11 +27,13 @@ For `get_technical_analysis`: poll `check_job_status` per the async-jobs skill. 
 
 **Cross-validation gate (non-bypassable):** check `get_peer_snapshot`'s top-level `target_company` against `get_company_info.name`. On mismatch, refuse to render — show both names and ask the user to confirm the intended company.
 
-## Batch B — Macro context (after A)
+## Batch B — Macro context (start when company info resolves)
 
 1. `list_macro_countries` to check coverage.
 2. Identify relevant markets (home + revenue geographies + commodity/supply chain). Cap at 3.
 3. `macro_analyst` with component="tactical" per relevant covered market.
+
+Do not wait for technical analysis, news synthesis, or other independent Batch A calls before starting Batch B.
 
 ## Batch C — AI Assessment (after A + B)
 

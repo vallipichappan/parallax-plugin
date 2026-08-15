@@ -17,6 +17,7 @@ Parse holdings into `{symbol, weight}` pairs. Equal-weight if no weights given (
 
 | Tool | Parameters | Notes |
 |---|---|---|
+| `get_company_info` | each equity holding | Ground-truth name for scoring cross-validation |
 | `quick_portfolio_scores` | equity holdings | Factor scores per holding + portfolio. Cross-check per-row `company_name` per the conventions skill — mismatches are excluded from aggregates and listed in a ⚠ MISMATCH table |
 | `check_portfolio_redundancy` | holdings list | Overlap detection |
 | `list_macro_countries` | — | Check market coverage |

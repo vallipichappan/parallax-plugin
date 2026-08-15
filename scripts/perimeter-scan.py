@@ -3,9 +3,15 @@
 
 Run before any push:
 
+    git add <release files>
     python3 scripts/perimeter-scan.py
 
-Exit 0 = clean. Exit 1 = findings. Exit 2 = could not scan (see below).
+The default source is the Git index. This makes the scan inspect the staged
+release candidate rather than unrelated or cleaner worktree bytes. Use
+``--source head`` after committing. ``--source worktree`` is diagnostic only;
+it still limits the file list to paths tracked by the index.
+
+Exit 0 = clean. Exit 1 = findings. Exit 2 = incomplete or failed scan.
 
 WHY THIS EXISTS
 ---------------
@@ -35,9 +41,10 @@ import os
 import re
 import subprocess
 import sys
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
+DEFAULT_REPO = Path(__file__).resolve().parent.parent
 EXTRAS_ENV = "PARALLAX_CANARY_EXTRA"
 DEFAULT_EXTRAS = Path.home() / ".claude" / "parallax-canary-extra.txt"
 
@@ -57,24 +64,48 @@ def branding_canaries() -> list[str]:
     return glyphs + [framework]
 
 
-def tracked_files() -> list[str]:
-    out = subprocess.run(
-        ["git", "-C", str(REPO), "ls-files"],
-        capture_output=True, text=True, check=True,
-    ).stdout
-    return [p for p in out.splitlines() if p.strip()]
-
-
-def commit_messages() -> str:
+def git(repo: Path, *args: str) -> bytes:
+    """Run Git without inheriting locale-dependent decoding behavior."""
     return subprocess.run(
-        ["git", "-C", str(REPO), "log", "--all", "--format=%B"],
-        capture_output=True, text=True, check=True,
+        ["git", "-C", str(repo), *args],
+        capture_output=True,
+        check=True,
     ).stdout
 
 
-def load_extras() -> list[str] | None:
+def tracked_files(repo: Path, source: str) -> list[str]:
+    """Return paths from the selected immutable or working content source."""
+    if source == "head":
+        out = git(repo, "ls-tree", "-r", "--name-only", "-z", "HEAD")
+    else:
+        out = git(repo, "ls-files", "--cached", "-z")
+    return [
+        path.decode("utf-8", errors="surrogateescape")
+        for path in out.split(b"\0")
+        if path
+    ]
+
+
+def file_text(repo: Path, rel: str, source: str) -> str:
+    """Read a tracked path from the selected Git source."""
+    if source == "index":
+        raw = git(repo, "show", f":{rel}")
+    elif source == "head":
+        raw = git(repo, "show", f"HEAD:{rel}")
+    else:
+        raw = (repo / rel).read_bytes()
+    return raw.decode("utf-8", errors="replace")
+
+
+def commit_messages(repo: Path) -> str:
+    return git(repo, "log", "--all", "--format=%B").decode(
+        "utf-8", errors="replace"
+    )
+
+
+def load_extras(default_path: Path) -> list[str] | None:
     """Return local canary terms, or None when the file is absent."""
-    path = Path(os.environ.get(EXTRAS_ENV, DEFAULT_EXTRAS))
+    path = Path(os.environ.get(EXTRAS_ENV, str(default_path)))
     if not path.is_file():
         return None
     terms = []
@@ -94,7 +125,7 @@ def load_extras() -> list[str] | None:
 STRUCTURAL_GLOBAL = [
     (
         "anchor-test",
-        re.compile(r"[Aa]nchor test"),
+        re.compile(r"anchor test", re.IGNORECASE),
         "an anchor-test reference — these are engine outputs on named tickers",
     ),
     (
@@ -120,7 +151,7 @@ STRUCTURAL_SCOPED = [
     ),
     (
         "target-column",
-        re.compile(r"\|\s*Target\s*\|"),
+        re.compile(r"\|\s*target\s*\|", re.IGNORECASE),
         "a 'Target' table column — profile outputs report observed values only",
     ),
 ]
@@ -128,50 +159,67 @@ STRUCTURAL_SCOPED = [
 STRUCTURAL_SCOPE = re.compile(r"investor", re.IGNORECASE)
 
 
-def main() -> int:
+def parse_args() -> Namespace:
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--repo",
+        type=Path,
+        default=DEFAULT_REPO,
+        help="repository to scan",
+    )
+    parser.add_argument(
+        "--source",
+        choices=("index", "head", "worktree"),
+        default="index",
+        help="content source to scan; index matches the staged release candidate",
+    )
+    return parser.parse_args()
+
+
+def scan(repo: Path, source: str) -> int:
     findings: list[str] = []
     notices: list[str] = []
 
-    files = tracked_files()
+    files = tracked_files(repo, source)
+    texts = {
+        rel: file_text(repo, rel, source)
+        for rel in files
+        if rel not in SELF_REFERENTIAL
+    }
 
     # --- 1. Branding canaries over files and commit messages -----------------
     canaries = branding_canaries()
-    for rel in files:
-        if rel in SELF_REFERENTIAL:
-            continue
-        text = (REPO / rel).read_text(encoding="utf-8", errors="replace")
+    for rel, text in texts.items():
         for term in canaries:
             if term.lower() in text.lower():
                 for n, line in enumerate(text.splitlines(), 1):
                     if term.lower() in line.lower():
                         findings.append(f"{rel}:{n}: branding canary hit")
-    msgs = commit_messages()
+    msgs = commit_messages(repo)
     for term in canaries:
         if term.lower() in msgs.lower():
             findings.append("commit messages: branding canary hit")
 
     # --- 2. Local extras, fail-closed ---------------------------------------
-    extras = load_extras()
-    if extras is None:
+    extras = load_extras(DEFAULT_EXTRAS)
+    if not extras:
         if os.environ.get("PARALLAX_ALLOW_PARTIAL_SCAN") == "1":
             notices.append(
-                "NOTICE: local canary file absent; built-in checks only. "
+                "NOTICE: local canary file absent or empty; built-in checks only. "
                 "This scan did NOT cover partner names or internal identifiers."
             )
         else:
             print(
-                f"perimeter-scan: local canary file not found "
-                f"(looked for {DEFAULT_EXTRAS}, override with {EXTRAS_ENV}).\n"
+                f"perimeter-scan: local canary file not found or empty "
+                f"(default {DEFAULT_EXTRAS}, override with {EXTRAS_ENV}).\n"
                 "Refusing to report a clean scan on a partial term set.\n"
                 "Set PARALLAX_ALLOW_PARTIAL_SCAN=1 to run built-in checks only.",
                 file=sys.stderr,
             )
             return 2
     else:
-        for rel in files:
-            if rel in SELF_REFERENTIAL:
-                continue
-            text = (REPO / rel).read_text(encoding="utf-8", errors="replace").lower()
+        for rel, file_content in texts.items():
+            text = file_content.lower()
             for i, term in enumerate(extras):
                 if term.lower() in text:
                     # Never echo the term — naming it to prove presence publishes it.
@@ -182,13 +230,10 @@ def main() -> int:
                 findings.append(f"commit messages: local canary hit (term #{i + 1})")
 
     # --- 3. Structural calibration tells -------------------------------------
-    for rel in files:
-        if rel in SELF_REFERENTIAL:
-            continue
+    for rel, text in texts.items():
         checks = list(STRUCTURAL_GLOBAL)
         if STRUCTURAL_SCOPE.search(rel):
             checks += STRUCTURAL_SCOPED
-        text = (REPO / rel).read_text(encoding="utf-8", errors="replace")
         for n, line in enumerate(text.splitlines(), 1):
             for name, pat, why in checks:
                 if pat.search(line):
@@ -208,8 +253,17 @@ def main() -> int:
         )
         return 1
 
-    print(f"perimeter-scan: clean ({len(files)} tracked files)")
+    print(f"perimeter-scan: clean ({len(files)} tracked files from {source})")
     return 0
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        return scan(args.repo.resolve(), args.source)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        print(f"perimeter-scan: could not scan: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

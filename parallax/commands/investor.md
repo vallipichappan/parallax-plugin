@@ -58,7 +58,7 @@ For any factor score notably high or low (top/bottom quartile), call `explain_me
 
 ### Verdict
 
-Per investor-profiles skill verdict rules: all criteria met = match, some met = partial_match (specify the count met), none met = no_match.
+Apply the investor-profiles skill's unpublished-cutoff rule. Render `match` only when every documented direction is supported without reconstructing a cutoff. If a hidden cutoff would decide the label, render `partial_match` and describe the qualitative evidence. Render `no_match` only when every documented direction is contradicted.
 
 ### Render
 
@@ -77,7 +77,8 @@ Per output template in investor-profiles skill. Data table: Factor | Score | 52-
 3. `get_financials` (statement="ratios") in parallel for all candidates — pull ROC and earnings yield.
 4. Rank each on ROC and earnings yield independently. Sum ranks, sort ascending.
 5. Take the leading names as the Magic Formula basket.
-6. `get_peer_snapshot` for the basket members (parallel, pedagogy).
+
+Do not add `get_peer_snapshot` solely for pedagogy. The financial ranking already supports this output, and the extra score call adds a second framework without changing the Magic Formula result.
 
 ### Ticker-check Mode (single ticker)
 
@@ -131,14 +132,14 @@ Checklist table: Check | Observed | Peer comparator | Result. Report observed va
 1. `list_macro_countries` — get covered markets.
 2. Select 3-5 tactically interesting markets (default: US, JP, EU + 2 EM based on divergence).
 3. `macro_analyst` (component="tactical") per market in parallel.
-4. `get_telemetry` for cross-market regime divergence.
+4. `get_telemetry` with fields `regime_tag`, `signals`, `commentary.headline`, `commentary.mechanism`, and `divergences` for cross-market regime divergence.
 5. Identify 1-3 regime themes where macro + telemetry agree.
 
 ### Basket Mode (no ticker)
 
 6. For each theme, `build_stock_universe` with sector-scoped thematic query (retry narrower on timeout).
 7. Cap each theme at top 20 by composite_score.
-8. `get_peer_snapshot` for top 3-5 per theme (parallel).
+8. Call `get_peer_snapshot` and `get_company_info` for the top 3-5 per theme in parallel. Drop identity mismatches.
 9. Rank within theme by momentum + macro sensitivity.
 
 ### Single-ticker Mode
@@ -218,7 +219,7 @@ End with the consensus umbrella disclaimer from the investor-profiles skill.
 
 ## Render discipline
 
-Steps execute silently — no `**Step N**` labels, no "Cross-validation passed" narration, no "Let me…" preamble. Begin the response with the rendered profile output. In every mode, render the AI-interaction disclosure per the conventions skill §9.2 immediately above the profile/consensus disclaimer.
+Steps execute silently — no `**Step N**` labels, no "Cross-validation passed" narration, no "Let me…" preamble. Begin the response with the rendered profile output. In every mode, render the AI-interaction disclosure per the conventions skill §9.2 immediately above the profile or consensus disclaimer. That profile disclaimer occupies the terminal §9.1 position.
 
 Apply the Verdict Sensitivity Guard from the investor-profiles skill: never state the value at which a verdict would flip, never rank by distance-to-threshold, and describe near-misses qualitatively only.
 

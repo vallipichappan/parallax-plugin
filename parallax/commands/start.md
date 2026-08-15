@@ -97,12 +97,12 @@ These are AI-inferred profiles built from public sources — always third-person
 If the invocation already carries an obvious payload, skip the menu and route directly. First match wins:
 
 1. Investor name + ticker → `/parallax:investor <name> <ticker>`
-2. Two or more tickers → `/parallax:peers`
-3. Single ticker → `/parallax:stock`
+2. An event description plus holdings → `/parallax:scenario`
+3. Holdings plus a loss statement ("down 4% this month") → `/parallax:explain`
 4. Holdings with weights → `/parallax:portfolio`
-5. Holdings plus a loss statement ("down 4% this month") → `/parallax:explain`
+5. A single ticker → `/parallax:stock`
 6. A country name → `/parallax:macro`
-7. An event description plus holdings → `/parallax:scenario`
+7. Two or more unweighted tickers → ask once whether the user wants a direct comparison, watchlist surveillance, or investor-profile consensus. Direct comparison uses `export_peer_comparison`; watchlist uses `/parallax:rebalance`; consensus uses `/parallax:investor`.
 
 When ambiguous, name the likely command and confirm while running: *"Sounds like `/parallax:portfolio` — dropping in now."*
 

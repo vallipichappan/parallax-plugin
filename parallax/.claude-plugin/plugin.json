@@ -8,7 +8,7 @@
     "url": "https://chicago.global"
   },
   "keywords": ["finance", "investing", "stocks", "ETF", "portfolio", "macro", "research", "halal", "shariah", "screening"],
-  "user_config": {
+  "userConfig": {
     "PARALLAX_API_KEY": {
       "type": "string",
       "title": "Parallax API key",
