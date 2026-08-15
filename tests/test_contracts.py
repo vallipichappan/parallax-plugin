@@ -49,16 +49,13 @@ class StructureTests(unittest.TestCase):
     def test_named_skill_references_resolve(self) -> None:
         names = {path.parent.name for path in SKILLS.glob("*/SKILL.md")}
         command_text = "\n".join(read(path) for path in COMMANDS.glob("*.md"))
-        referenced = {
-            match.group(1) or match.group(2)
-            for match in re.finditer(
-                r"`([a-z][a-z0-9-]+)` skill|`([a-z][a-z0-9-]+)`",
-                command_text,
-            )
-            if (match.group(1) or match.group(2)) in names
-        }
+        referenced = set(
+            re.findall(r"`([a-z][a-z0-9-]+)` skill", command_text)
+        )
+        unresolved = referenced - names
+
         self.assertTrue(referenced)
-        self.assertTrue(referenced.issubset(names))
+        self.assertEqual(unresolved, set())
 
     def test_ci_uses_pinned_actions_and_no_paid_services(self) -> None:
         workflow = read(ROOT / ".github" / "workflows" / "validate.yml")
@@ -67,6 +64,7 @@ class StructureTests(unittest.TestCase):
         self.assertTrue(action_refs)
         for ref in action_refs:
             self.assertRegex(ref, r"\A[0-9a-f]{40}\Z")
+        self.assertRegex(workflow, r"fetch-depth:\s*0")
         self.assertIn("PARALLAX_ALLOW_PARTIAL_SCAN", workflow)
         self.assertNotIn("PARALLAX_API_KEY", workflow)
         self.assertNotIn("get_assessment", workflow)

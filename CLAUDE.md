@@ -24,7 +24,7 @@ tests/                            Standard-library regression and contract tests
 docs/positioning.md               Marketing/positioning reference
 ```
 
-Installation for end users: `claude plugin marketplace add vallipichappan/parallax-plugin` then `claude plugin install parallax@parallax-plugin`. Requires `PARALLAX_API_KEY` env var (or Cowork-injected via `user_config`).
+Installation for end users: `claude plugin marketplace add vallipichappan/parallax-plugin` then `claude plugin install parallax@parallax-plugin`. Requires `PARALLAX_API_KEY` env var (or Cowork-injected via `userConfig`).
 
 ## Architecture: Commands Orchestrate, Skills Specify
 
