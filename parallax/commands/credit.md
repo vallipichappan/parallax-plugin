@@ -84,9 +84,9 @@ Also apply absolute credit thresholds. **Use the more conservative of peer-relat
 | Interest Coverage | < 3.0x | < 1.5x |
 | Current Ratio | < 1.2x | < 1.0x |
 | Altman Z | Grey Zone (1.81–2.99) | Distress Zone (< 1.81) |
-| Quality Score Change (52w, 0-10 scale) | decline > 0.5 pts | decline > 1.5 pts |
+| Quality Score Change (52w, 0-10 scale) | change ≤ -0.5 pts | change ≤ -1.5 pts |
 
-Quality-score deterioration is a **primary** credit early-warning signal — a decline beyond 1.5 pts (0-10 scale) is RED even when every other metric looks healthy. Use the table's figures; this line restates them, it does not set a second threshold.
+Quality-score deterioration is a **primary** credit early-warning signal — a change of −1.5 pts or worse (0-10 scale) is RED even when every other metric looks healthy. The comparison is inclusive at the boundary, matching the upstream implementation. Use the table's figures; this line restates them, it does not set a second threshold.
 
 **Peer degradation:** if the peer group is too small for reliable medians, show absolute thresholds only and state that peer comparison is unavailable. Flag any significant size mismatch (mega-cap medians are not a meaningful yardstick for a small-cap).
 
