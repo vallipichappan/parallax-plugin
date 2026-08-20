@@ -10,20 +10,22 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "Tell me about [stock]" | `/parallax:stock` |
 | "Quick scores for [stock]" | `get_peer_snapshot` |
 | "Should I buy [stock]?" | `/parallax:stock` |
-| "Tell me about [ETF]" | `get_etf_snapshot` |
-| "Compare [ETF A] vs [ETF B]" | `compare_etfs` then `get_etf_overlap` |
-| "Find ETFs for [theme]" | `search_etfs` |
+| "Tell me about [ETF]" | `/parallax:etf` (single mode — `etf_profile` + `etf_holdings`) |
+| "Compare [ETF A] vs [ETF B]" | `/parallax:etf` (compare mode) |
+| "What ETFs overlap?" | `/parallax:etf` (overlap mode — client-side intersection of `etf_holdings`) |
+| "Find ETFs for [theme]" | `/parallax:etf` (search mode — `search_etfs`) |
 | "Analyze my portfolio" | `/parallax:portfolio` |
 | "Is my portfolio concentrated?" | `check_portfolio_redundancy` |
 | "Quick factor check" | `quick_portfolio_scores` |
 | "Macro outlook for [country]" | `/parallax:macro` |
 | "Compare US vs Japan macro" | `/parallax:macro` (multi-country mode) |
-| "Find stocks that [theme]" | `/parallax:universe` |
+| "Thematic ideas for [X]" / "trade ideas around [X]" / "idea list for [theme]" | `/parallax:thematic-screen` — ranked idea list, no weights |
+| "Find stocks that [theme]" | `/parallax:thematic-screen` for a ranked shortlist; `/parallax:universe` if they want it weighted into a portfolio — ask once if unclear |
 | "Build me a portfolio for [theme]" | `/parallax:universe` |
 | "What's the news on [stock]?" | `get_news_synthesis` |
 | "What are the financials?" | `get_financials` |
 | "What do analysts think?" | `get_stock_outlook` (aspect=analyst) |
-| "Price history / performance" | `export_price_series` (stocks) or `get_etf_price_history` (ETFs) |
+| "Price history / performance" | `export_price_series` (stocks, free) or `etf_daily_price` (ETFs) — route per asset-class-routing skill |
 | "Full research report PDF" | `get_stock_report` (~2 min) |
 | "Deep dive on [stock]" | `/parallax:deep-dive` |
 | "What's the market doing today?" | `get_telemetry` (~15-30s) |
@@ -31,7 +33,12 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "Is [stock] halal / Shariah compliant?" | `/parallax:screen` (halal mode) |
 | "Check earnings quality of [stock]" | `/parallax:screen` (quality mode) |
 | "Forensic analysis of [stock]" | `/parallax:screen` (quality mode) |
-| "Compare [stock A] vs [stock B]" | `get_peer_snapshot` for each, present side-by-side |
+| "Compare [stock A] vs [stock B]" | `export_peer_comparison` (one call, cross-sectionally comparable scores) |
+| "How does [stock] compare to its peers?" | `/parallax:peers` |
+| "Who are [stock]'s competitors / peer group?" | `/parallax:peers` |
+| "Why does [stock] score that way?" | `/parallax:why-score` |
+| "What does the [factor] factor measure?" | `/parallax:why-score` |
+| "Why did [stock]'s score drop?" | `/parallax:why-score` |
 | "Is [stock] a Buffett stock?" | `/parallax:investor` (buffett mode) |
 | "What would Buffett think of [stock]?" | `/parallax:investor` (buffett mode) |
 | "Apply Buffett factor profile" | `/parallax:investor` (buffett mode) |
@@ -50,8 +57,15 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "What if [event]? My portfolio is..." | `/parallax:scenario` |
 | "Rebalance my portfolio" | `/parallax:rebalance` |
 | "Monitor my watchlist" | `/parallax:rebalance` (watchlist mode) |
-| "Why am I down?" | `/parallax:portfolio` (with price context) |
+| "Why am I down?" / "explain my drawdown" | `/parallax:explain` |
+| "Credit risk / can [company] service its debt?" | `/parallax:credit` |
+| "Resolve ticker / find symbol" | `search_stocks` (free) |
 | "I found a bug / feature request" | `submit_feedback` |
+| "What can Parallax do?" / no specific ask | `/parallax:start` |
+
+Note `/parallax:explain` is drawdown attribution, not score methodology — score explanations are `/parallax:why-score`. `explain_methodology` is the raw tool behind the latter; prefer the command when the user wants an explanation rather than a definition.
+
+Three routes touch "ideas": `/parallax:universe` turns a user theme into a weighted portfolio; `/parallax:thematic-screen` turns a user theme into an unweighted ranked idea list; `/parallax:investor` (soros basket mode) derives ideas from the macro regime with no user theme supplied. A bare "screen for [theme]" routes to `/parallax:screen` (halal/quality) when it names a compliance or forensic filter (halal, Shariah, quality, forensic, accruals); otherwise treat it as "thematic ideas for [theme]" and route to `/parallax:thematic-screen`.
 
 Default for any ambiguous stock question: `get_peer_snapshot`.
 Default for any investor/legend/Buffett/Greenblatt/Klarman/Soros/Magic Formula/margin-of-safety question: `/parallax:investor`.

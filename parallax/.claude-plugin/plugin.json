@@ -1,16 +1,19 @@
 {
   "name": "parallax",
-  "version": "1.1.0",
-  "description": "End-to-end investment research workflows powered by Parallax factor scores, macro analysis, and AI synthesis. Unlike data-access plugins, Parallax delivers structured verdicts — a single command produces a stock brief, portfolio health check, earnings quality report, halal compliance screen, or AI investor profile analysis (Buffett, Greenblatt, Klarman, Soros, or consensus across all four) with cross-validated data, parallel execution, and graceful fallbacks built in. 10 commands covering stock analysis, portfolio diagnostics, ETF intelligence, thematic screening, macro outlook, Shariah compliance, AI investor profiles, scenario analysis, and rebalancing across 40+ global markets.",
+  "version": "1.4.0",
+  "description": "End-to-end investment research workflows powered by Parallax factor scores, macro analysis, and AI synthesis. Unlike data-access plugins, Parallax delivers structured verdicts — a single command produces a stock brief, peer comparison, portfolio health check, drawdown attribution, credit lens, earnings quality report, halal compliance screen, or AI investor profile analysis (Buffett, Greenblatt, Klarman, Soros, or consensus across all four) with cross-validated data, parallel execution, and graceful fallbacks built in. 16 commands covering stock analysis, peer comparison, score explanation, portfolio diagnostics, drawdown attribution, credit assessment, ETF intelligence, thematic screening, macro outlook, Shariah compliance, AI investor profiles, scenario analysis, and rebalancing — plus a guided entry point.",
   "homepage": "https://chicago.global",
   "author": {
     "name": "Chicago Global Capital",
     "url": "https://chicago.global"
   },
   "keywords": ["finance", "investing", "stocks", "ETF", "portfolio", "macro", "research", "halal", "shariah", "screening"],
-  "user_config": {
+  "userConfig": {
     "PARALLAX_API_KEY": {
-      "type": "secret",
+      "type": "string",
+      "title": "Parallax API key",
+      "sensitive": true,
+      "required": true,
       "description": "Parallax API key (get one at chicago.global)"
     }
   }

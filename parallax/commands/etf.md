@@ -1,22 +1,40 @@
 ---
-description: Research, compare, or find ETFs — snapshots, holdings, overlap, price history
+description: Research, compare, or find ETFs — profiles, holdings, overlap, price history
 argument-hint: "[ETF ticker(s) or search keywords]"
 ---
 
 # ETF Research
 
-**Single ETF** → `get_etf_snapshot` + `get_etf_holdings`
+## Argument parsing
 
-**Compare ETFs** → `compare_etfs` then `get_etf_overlap` (shows true diversification)
+- 1 ticker (`SPY`) → **single mode**
+- 2-5 tickers (`SPY QQQ`) → **compare mode** (includes overlap)
+- "overlap" + tickers → **overlap mode**
+- Descriptive text ("high quality tech ETFs") → **search mode**
+- If a supplied symbol turns out not to be an ETF (`etf_profile` errors "No profile data found" → it's an equity, per the asset-class-routing skill), say so and suggest `/parallax:stock`.
 
-**Find ETFs by theme** → `search_etfs` with keywords + optional factor filters (min_quality, min_momentum, etc.), then snapshot top results
+ETF tickers are plain format: SPY, QQQ, IWM — no exchange suffix. `.P`-suffixed RICs are NYSE Arca ETFs.
 
-**Overlap check** → `get_etf_overlap` with 2–5 tickers; weights optional
+## Modes
 
-**Price history** → `get_etf_price_history` with date range
+**Single ETF** → `etf_profile` + `etf_holdings` in parallel.
 
-ETF tickers are plain format: SPY, QQQ, IWM — no exchange suffix.
+**Compare ETFs** → `etf_profile` per ticker (parallel, one call per ticker — multi-symbol calls fail empty on partial coverage), then overlap per below.
 
-**Output:** Profile → Factor scores → Top holdings → Overlap (if comparing) → Recommendation.
+**Overlap check** → there is no server-side overlap tool. Fetch `etf_holdings` per ticker (parallel, single-symbol calls), intersect constituents client-side, and report: shared constituents, weight in each ETF, summed overlap weight. For 3+ ETFs report pairwise overlaps.
 
-*"This is informational analysis based on Parallax factor scores, not investment advice."*
+**Find ETFs by theme** → `search_etfs` with keywords + optional factor filters (min_quality, min_momentum, etc.), then `etf_profile` on top results.
+
+**Price history** → `etf_daily_price`, one symbol per call (a multi-symbol call returns `[]` if ANY symbol is missing).
+
+## Fallbacks
+
+Instant-tool rules per the conventions skill: retry once, then mark the section "Data unavailable" and continue. `etf_profile` and `etf_daily_price` cost 1 token each; `etf_holdings` is unpriced, so quote holdings-touching modes as "plus one unpriced holdings call" rather than a flat number.
+
+**Output:** Profile → Top holdings → Overlap (if comparing) → Assessment.
+
+Render the AI-interaction disclosure per the conventions skill §9.2 immediately above the disclaimer, then the standard disclaimer verbatim from the conventions skill §9.1.
+
+## Render discipline
+
+Apply the Render Discipline section of the conventions skill: suppress step scaffolding, hoist every integrity surface (⚠ MISMATCH rows, degraded-coverage notes, "Data unavailable" / "Analysis pending" markers) into the final output, and close with the §9.2 disclosure immediately above the §9.1 disclaimer.

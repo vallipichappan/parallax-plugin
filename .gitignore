@@ -1,3 +1,11 @@
 .env
 .env.local
 .env*.local
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local working notes and audit output — may contain live Parallax data.
+# This is a public marketplace repo; keep these out of it.
+notes/
+audits/
