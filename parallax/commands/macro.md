@@ -31,6 +31,9 @@ If equity screening was done:
 1. Call `get_peer_snapshot` and `get_company_info` for the top 5 universe results in parallel. Cross-validate per the conventions skill and drop mismatches. Rankings cover listed equities with Parallax factor coverage only — funds/OEICs are not screened.
 2. `get_score_analysis` for top 3 (parallel, server-default window).
 
+
+**Universe reproducibility:** any candidate list here comes from `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering. Tell the user the candidate set is a point-in-time sample, per the conventions skill's Universe Search Reproducibility section.
+
 ## Output
 
 - **Regime Status** — current regime tag + signals

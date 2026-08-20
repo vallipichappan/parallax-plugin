@@ -95,6 +95,8 @@ Report the target's observed combined rank and percentile within the peer univer
 
 Universe mode: ranked basket table. Ticker-check mode: percentile verdict. Substitute "Joel Greenblatt" in the disclaimer.
 
+**Universe reproducibility:** both modes rest on `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering, per the conventions skill's Universe Search Reproducibility section. State that the basket is a point-in-time sample. In ticker-check mode say so explicitly next to the verdict: the percentile is measured against a peer set that can differ between runs, so the verdict can move without anything about the company changing.
+
 ---
 
 ## Klarman Mode

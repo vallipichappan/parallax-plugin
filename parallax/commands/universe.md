@@ -39,6 +39,9 @@ Adjust weights based on scores, redundancy flags, and sector balance. Call `quic
 
 `analyze_portfolio` with `portfolio=[{date, symbol, weight}]` and `fields=["portfolio_summary","performance_metrics","drawdown_analysis","concentration_metrics","sector_allocation"]` on the final allocation to confirm it behaves as intended. No `holdings` or `lens` parameters exist. Check `result._meta.invalid_fields`; any entry is a caller error. If the response is truncated (>180K chars), rely on Step 4-5 outputs — and disclose the fallback scope: rolling metrics, drawdown, contribution attribution, and performance time series are NOT validated on that path.
 
+
+**Universe reproducibility:** any candidate list here comes from `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering. Tell the user the candidate set is a point-in-time sample, per the conventions skill's Universe Search Reproducibility section.
+
 ## Output
 
 - **Investment Thesis** — restate and refine the user's intent

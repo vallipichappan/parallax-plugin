@@ -183,20 +183,40 @@ class WorkflowContractTests(unittest.TestCase):
         )
 
     def test_universe_reproducibility_is_documented_and_surfaced(self) -> None:
-        """build_stock_universe is non-reproducible; the user must be told.
+        """Every build_stock_universe caller must carry the point-in-time caveat.
 
-        Membership varies between runs, not only ordering, because the top-N cut
-        precedes scoring. Verified live 2026-08-20.
+        conventions states the requirement as "any command whose output is built
+        on build_stock_universe must tell the user the result is a point-in-time
+        sample". An earlier version of this test locked only thematic-screen.md,
+        so six other callers silently violated a rule the canonical skill states
+        — the exact drift CLAUDE.md's "the skill is the spec" rule exists to
+        catch. Derive the caller list from the files themselves so a NEW caller
+        cannot be added without complying.
         """
         conventions = read(SKILLS / "conventions" / "SKILL.md")
         self.assertIn("Universe Search Reproducibility", conventions)
         self.assertIn("not reproducible run-to-run", conventions)
 
-        screen = read(COMMANDS / "thematic-screen.md")
-        scope_note = [ln for ln in screen.splitlines() if "**Scope Note**" in ln]
+        callers = [
+            p for p in sorted(COMMANDS.glob("*.md"))
+            if "build_stock_universe" in read(p)
+        ]
+        self.assertGreaterEqual(len(callers), 7, "caller inventory shrank unexpectedly")
+
+        for path in callers:
+            with self.subTest(command=path.name):
+                self.assertIn(
+                    "point-in-time",
+                    read(path),
+                    "calls build_stock_universe without the reproducibility caveat",
+                )
+
+        scope_note = [
+            ln for ln in read(COMMANDS / "thematic-screen.md").splitlines()
+            if "**Scope Note**" in ln
+        ]
         self.assertEqual(len(scope_note), 1, "Scope Note line not found or duplicated")
         self.assertIn("Universe Search Reproducibility", scope_note[0])
-        self.assertIn("point-in-time", scope_note[0])
 
     def test_universe_emptiness_is_decided_from_the_candidate_array(self) -> None:
         """total_matches is not a candidate count, and degraded is an integrity surface.

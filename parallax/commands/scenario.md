@@ -46,6 +46,9 @@ Rank holdings deterministically from sector exposure, weighted concentration, sc
 
 Call `get_assessment` once with the scenario, transmission mechanisms, macro regime, deterministic exposure ranking, and validated candidates. Ask for exposure-reduction classifications prioritized by urgency and magnitude. Exclude ⚠ MISMATCH holdings. Poll with the wait cap; if it expires, render the deterministic Phase 2b findings with "Action-plan synthesis pending — service temporarily unavailable."
 
+
+**Universe reproducibility:** any candidate list here comes from `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering. Tell the user the candidate set is a point-in-time sample, per the conventions skill's Universe Search Reproducibility section.
+
 ## Output
 
 - **Scenario Summary** — what happened, why it matters

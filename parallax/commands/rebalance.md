@@ -62,6 +62,9 @@ After Batch A completes, render one summary line: "N/M holdings scored; sections
 
 `quick_portfolio_scores` on proposed new allocation to verify improvement vs current.
 
+
+**Universe reproducibility:** any candidate list here comes from `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering. Tell the user the candidate set is a point-in-time sample, per the conventions skill's Universe Search Reproducibility section.
+
 ### Output
 
 - **Mandate Constraints Applied** — if target/constraints given
