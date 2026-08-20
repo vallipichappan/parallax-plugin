@@ -135,6 +135,123 @@ class WorkflowContractTests(unittest.TestCase):
                 cited += 1
         self.assertGreaterEqual(cited, 8, "cross-validation field path lost its citations")
 
+    def test_every_named_ric_suffix_is_classified_for_macro(self) -> None:
+        """Each suffix the conventions skill names must be mapped or declared uncovered.
+
+        A suffix that appears in the RIC Resolution table or the macro fallback
+        line but in neither group of the macro-market table makes a candidate on
+        that exchange silently lose its market tag. `.SI` and `.K` were in that
+        state until 2026-08-20.
+
+        Classification is read ONLY from the macro table's own rows and from the
+        explicit "no currently-covered macro market" sentence. Surrounding prose
+        does not count: an earlier version of this test read the whole section
+        and was satisfied by a suffix merely being *mentioned* nearby, which
+        made it unable to fail.
+        """
+        text = read(SKILLS / "conventions" / "SKILL.md")
+        macro_table = section(
+            text, "### RIC Suffix → Covered Macro Market", "## Render Discipline"
+        )
+        suffix = re.compile(r"`(\.[A-Z]{1,2})`")
+
+        mapped: set[str] = set()
+        for line in macro_table.splitlines():
+            stripped = line.strip()
+            if not stripped.startswith("|") or stripped.startswith("|---"):
+                continue
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            if len(cells) != 2 or cells[1] in {"Market", ""}:
+                continue
+            mapped.update(suffix.findall(cells[0]))
+
+        uncovered: set[str] = set()
+        for line in macro_table.splitlines():
+            if "no currently-covered macro market" in line:
+                uncovered.update(suffix.findall(line))
+
+        self.assertTrue(mapped, "macro-market table has no mapped suffix rows")
+        self.assertTrue(uncovered, "macro-market table declares no uncovered suffixes")
+
+        named = set(suffix.findall(text))
+        self.assertGreaterEqual(len(named), 11, "suffix inventory shrank unexpectedly")
+        unclassified = sorted(named - mapped - uncovered)
+        self.assertEqual(
+            unclassified,
+            [],
+            "suffixes named elsewhere but neither mapped nor declared uncovered",
+        )
+
+    def test_universe_reproducibility_is_documented_and_surfaced(self) -> None:
+        """build_stock_universe is non-reproducible; the user must be told.
+
+        Membership varies between runs, not only ordering, because the top-N cut
+        precedes scoring. Verified live 2026-08-20.
+        """
+        conventions = read(SKILLS / "conventions" / "SKILL.md")
+        self.assertIn("Universe Search Reproducibility", conventions)
+        self.assertIn("not reproducible run-to-run", conventions)
+
+        screen = read(COMMANDS / "thematic-screen.md")
+        scope_note = [ln for ln in screen.splitlines() if "**Scope Note**" in ln]
+        self.assertEqual(len(scope_note), 1, "Scope Note line not found or duplicated")
+        self.assertIn("Universe Search Reproducibility", scope_note[0])
+        self.assertIn("point-in-time", scope_note[0])
+
+    def test_universe_emptiness_is_decided_from_the_candidate_array(self) -> None:
+        """total_matches is not a candidate count, and degraded is an integrity surface.
+
+        Verified live 2026-08-20: build_stock_universe returned
+        success=true, status="completed", total_matches=5, results_returned=0,
+        companies=[], degraded=true, relaxed=["strict_theme",
+        "default_liquidity_floor"]. A gate keyed on total_matches or success
+        would have waved a zero-candidate result through to downstream tools.
+        """
+        conventions = read(SKILLS / "conventions" / "SKILL.md")
+        self.assertIn("Emptiness and degradation are not what they look like", conventions)
+        for token in ("`total_matches` is not a candidate count", "`degraded: true`", "`relaxed`"):
+            with self.subTest(token=token):
+                self.assertIn(token, conventions)
+
+        screen = read(COMMANDS / "thematic-screen.md")
+        gate = [ln for ln in screen.splitlines() if "Empty-universe gate" in ln]
+        self.assertEqual(len(gate), 1, "empty-universe gate line not found or duplicated")
+        self.assertIn("`companies` array only", gate[0])
+        self.assertIn("never from `total_matches`", gate[0])
+        self.assertIn("Degraded-universe note", screen)
+
+    def test_thematic_screen_guards_every_downstream_call(self) -> None:
+        """Steps 4 and 5 must not run with zero trusted candidates.
+
+        Step 2 can legitimately exclude every candidate into the ⚠ MISMATCH
+        table. Without this gate an all-mismatch run calls
+        export_peer_comparison and get_financials with an undefined symbol.
+        """
+        screen = read(COMMANDS / "thematic-screen.md")
+        self.assertIn("Zero-trusted-candidates gate", screen)
+        gate = section(screen, "**Zero-trusted-candidates gate", "## Step 4")
+        self.assertIn("skip Steps 4 and 5", gate)
+        self.assertIn("undefined symbol", gate)
+
+    def test_token_costs_asserts_no_redacted_candidate_cap(self) -> None:
+        """Cost estimates must not restate a cap the profile spec no longer publishes.
+
+        v1.3.0 redacted the Greenblatt percentile bands and its candidate cap
+        from investor.md and investor-profiles. token-costs kept asserting a
+        `×30` ratios pull, so the two skills disagreed on a number one of them
+        is not allowed to publish. Per CLAUDE.md the calibration cannot be
+        hand-authored back here, so the cost row must not name a count either.
+        """
+        costs = read(SKILLS / "token-costs" / "SKILL.md")
+        greenblatt = [ln for ln in costs.splitlines() if "greenblatt" in ln.lower()]
+        self.assertTrue(greenblatt, "greenblatt cost row missing")
+        for line in greenblatt:
+            with self.subTest(line=line):
+                self.assertIsNone(
+                    re.search(r"×\s*\d+", line),
+                    "cost row names a candidate count the profile spec redacts",
+                )
+
     def test_explain_uses_neutral_classifications(self) -> None:
         text = read(COMMANDS / "explain.md")
         for phrase in ("Hold or add", "consider trim", "What To Do"):

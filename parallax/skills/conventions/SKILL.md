@@ -26,6 +26,7 @@ Stocks require Reuters Instrument Codes (RICs). When the user provides a plain t
 | Sydney | `.AX` | `BHP.AX` | Australian companies |
 | Oslo | `.OL` | `YAR.OL` | Norwegian companies |
 | Korea | `.KS` | `005930.KS` | 6-digit numeric |
+| Singapore | `.SI` | `D05.SI` | Singapore companies |
 
 **Ambiguous tickers:** Try `.O` then `.N` first (US most common). Numeric codes: 4 digits → `.T` / `.HK` / `.TW` by context; 6 digits → `.KS`.
 
@@ -55,7 +56,7 @@ A workflow that produced output is not thereby a workflow that succeeded.
 
 ## Cross-Validation
 
-After any scoring call that returns a company name, cross-check that name against `get_company_info`. Field mapping: `get_company_info` returns the company payload wrapped in a top-level `data` object, so the ground-truth name is at `get_company_info.data.name` — there is no top-level `name` field. `get_peer_snapshot` returns `target_company` at top level (NOT `name` on peer rows — those refer to each peer). `quick_portfolio_scores` returns `company_name` per holding row. `get_score_analysis` has no company-name field; verify `data[0].symbol` against the requested RIC and use the workflow's already-resolved company identity. Extra caution for `.HK`, `.T`, `.TW`, `.KS` codes.
+After any scoring call that returns a company name, cross-check that name against `get_company_info`. Field mapping: `get_company_info` wraps its payload in a top-level `data` key and has **no top-level `name` field**. `data` is shape-dependent on how you called it: for a **single symbol** it is an object, so the name is at `get_company_info.data.name`; for a **comma-separated batch** it is an **array**, so `data.name` is undefined and you must match each element by its `ric` before reading `.name`. Verified live 2026-08-20. **Call it one symbol at a time for cross-validation.** Batching to save calls silently breaks the identity check, which is the one check that must never fail open. `get_peer_snapshot` returns `target_company` at top level (NOT `name` on peer rows — those refer to each peer). `quick_portfolio_scores` returns `company_name` per holding row. `get_score_analysis` has no company-name field; verify `data[0].symbol` against the requested RIC and use the workflow's already-resolved company identity. Extra caution for `.HK`, `.T`, `.TW`, `.KS` codes.
 
 **On mismatch:**
 - **Single-stock verdict flows** (stock, investor, credit, deep-dive): refuse to render the verdict; show both names and ask the user to confirm the intended company.
@@ -94,6 +95,27 @@ Default to parallel where dependencies allow:
 
 `get_news_synthesis` is async (30-90s) and should never block output. Fire in parallel, assemble output from instant tools, insert news when ready or mark "pending."
 
+## Universe Search Reproducibility
+
+`build_stock_universe` is **not reproducible run-to-run**. Two identical calls return different orderings, different `relevance_rank` values for the same company, and — the part that matters — **different result sets**. Verified 2026-08-20: the same query returned a company at rank 3 on one call and rank 9 on the next.
+
+Re-ranking by total score, which every universe-based command already does, fixes the *ordering* variance. It does not fix *membership* variance: the top-N cut is taken on relevance rank **before** scoring, so which candidates get scored at all changes between runs. A user who re-runs the same screen can get a different idea list, not merely a reshuffled one.
+
+Consequences:
+
+- Any command whose output is built on `build_stock_universe` must tell the user the result is a point-in-time sample, not a stable list. Say it where the user reads what the output is and is not.
+- Never assert or imply that re-running a screen reproduces it.
+- Never write a test that asserts a specific company, ordering, or `relevance_rank` from a live universe call. Such a test is flaky by construction.
+
+### Emptiness and degradation are not what they look like
+
+Two live-verified traps in the `build_stock_universe` response (2026-08-20):
+
+1. **`total_matches` is not a candidate count.** A response can carry `success: true`, `status: "completed"`, `total_matches: 5`, and `results_returned: 0` with an **empty** `companies` array. **Decide emptiness from the `companies` array alone.** An empty-universe gate keyed on `total_matches` or on `success` will wave a zero-candidate result through and call downstream tools with nothing.
+2. **`degraded: true` is an integrity surface and nothing currently reads it.** The response also carries `relaxed`, an array naming the screens the server loosened to return anything at all (e.g. `["strict_theme", "default_liquidity_floor"]`). When `degraded` is true, render a degraded-coverage note naming those relaxed screens, per Render Discipline. A result set assembled by dropping the user's own theme strictness is not the screen they asked for, and saying so is not optional.
+
+This is a characteristic of the server-side search, not a defect in any command. It does not contradict the §9.1 disclaimer's "deterministic pipelines" wording, which enumerates factor scores, financials, peer mappings, technicals, and price series — universe search is not in that list.
+
 ## Macro Context
 
 For single-stock or portfolio analysis, determine relevant markets from RIC suffixes:
@@ -111,15 +133,18 @@ For workflows that derive markets from a candidate set rather than a single home
 
 | Suffix | Market |
 |---|---|
-| `.O`, `.N` | United States |
+| `.O`, `.N`, `.K` | United States |
 | `.L` | United Kingdom |
 | `.DE` | Germany |
 | `.PA` | France |
 | `.T` | Japan |
 | `.TW` | Taiwan |
 | `.KS` | South Korea |
+| `.SI` | Singapore |
 
 `.HK`, `.AX`, `.OL` have no currently-covered macro market. A candidate on one of these exchanges gets no market tag — never substitute a nearby market (e.g. China for Hong Kong).
+
+**Every suffix named anywhere in this skill appears in exactly one of the two groups above — mapped, or explicitly uncovered.** A suffix that appears in the RIC Resolution table or the fallback line but in neither group here is a drift bug: it makes a candidate on that exchange silently lose its market tag. `.SI` and `.K` were in that state until 2026-08-20.
 
 ## Render Discipline
 

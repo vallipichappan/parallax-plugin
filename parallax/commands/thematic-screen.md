@@ -15,9 +15,11 @@ Candidates are listed equities with Parallax factor coverage; funds/OEICs are ou
 
 `build_stock_universe` with the user's theme as query (searches 65K+ company descriptions; the tool takes `query`, not `description`).
 
-**Empty-universe gate (required first check):** if the universe comes back empty, skip Steps 2, 4, and 5, and skip the market-selection half of Step 3 — report the empty result and suggest a narrower/reworded query. Never call downstream tools with no candidates. (Step 3's `list_macro_countries` and telemetry calls fire in parallel with this step regardless, per Step 3 below; on an empty universe their results are simply unused.)
+**Empty-universe gate (required first check):** decide emptiness from the `companies` array only — never from `total_matches`, `results_returned`, or `success`, per the conventions skill's "Emptiness and degradation are not what they look like". If `companies` is empty, skip Steps 2, 4, and 5, and skip the market-selection half of Step 3 — report the empty result and suggest a narrower/reworded query. Never call downstream tools with no candidates. (Step 3's `list_macro_countries` and telemetry calls fire in parallel with this step regardless, per Step 3 below; on an empty universe their results are simply unused.)
 
 **Timeout fallback:** on timeout, retry once with a narrower query; if still failing, continue with `universe = []` and flag it — do not substitute an unrelated aggregate tool as a placeholder.
+
+**Degraded-universe note:** if the response carries `degraded: true`, render a degraded-coverage note in Universe Built naming the screens listed in `relaxed`. A set assembled by loosening the user's theme strictness is not the screen they asked for.
 
 **Divergence assertion:** if the query named 2+ sectors but >60% of results collapse into a single sector, fail loud: "universe collapsed to single sector despite multi-sector request."
 
@@ -37,6 +39,8 @@ Cross-validate per the conventions skill: check `get_peer_snapshot`'s top-level 
 
 Skip Step 3's market-selection and `macro_analyst` calls entirely if the user asks to skip macro context (telemetry still fires; it's a fixed-cost basket-level call, not theme- or candidate-dependent).
 
+**Zero-trusted-candidates gate (applies to Steps 4 and 5):** Step 2 can legitimately end with no trusted candidates, when every candidate fails cross-validation and lands in the ⚠ MISMATCH table. In that case skip Steps 4 and 5 entirely and say so in the output — there is no lead candidate and no top 3. Render the ⚠ MISMATCH table and the Universe Built section as normal. Never call a downstream tool with an undefined symbol.
+
 ## Step 4 — Lead-Candidate Peer Comparison
 
 `export_peer_comparison` on the highest-scored trusted candidate's symbol, format="json" (parallel with Step 5, both after Step 2 completes — does not wait on Step 3).
@@ -48,7 +52,7 @@ Skip Step 3's market-selection and `macro_analyst` calls entirely if the user as
 ## Output
 
 - **Theme** — restate the thesis; render the Macro-theme banner inline if it fired
-- **Scope Note** — *"This is a ranked idea list, not a weighted or validated portfolio — no weights, redundancy check, or portfolio validation has been run."*
+- **Scope Note** — *"This is a ranked idea list, not a weighted or validated portfolio — no weights, redundancy check, or portfolio validation has been run."* Append the point-in-time caveat per the conventions skill's Universe Search Reproducibility section: the candidate set is a point-in-time sample, and re-running the same theme can return a different set of names.
 - **Macro Context** (if Step 3b selected any market) — one line per selected market (max 3) from `macro_analyst` tactical; a Regime Signal sub-line from telemetry if present; state explicitly that this is context and does not re-rank
 - **Universe Built** — candidate count, key sectors, divergence-assertion result, any degraded-coverage note
 - **Ranked Ideas** — informational preface per the conventions skill §12, then table: symbol, name, sector, total score, key factor strengths, Macro Tag. No weight column — this table never carries position sizing. ⚠ MISMATCH rows render in a separate table, carry no score, and are excluded from ranking. Macro Tag: the candidate's own derived market (Step 3b) if it was one of the ≤3 selected markets, else "—". Never infer from sector. Annotation only — never reorders or filters Ranked Ideas.

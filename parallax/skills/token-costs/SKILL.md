@@ -48,7 +48,7 @@ Estimates assume no cache hits and `export_price_series` at 0 tokens.
 | `/parallax:scenario` | ~68 |
 | `/parallax:rebalance` | ~76 |
 | `/parallax:investor` (buffett) | ~4 |
-| `/parallax:investor` (greenblatt ticker-check) | ~35-40 (dominated by `get_financials` ×30 ratios pull) |
+| `/parallax:investor` (greenblatt ticker-check) | ~35-40 (dominated by the per-candidate `get_financials` ratios pull; scales linearly with the candidate cap) |
 | `/parallax:investor` (greenblatt universe) | ~35-40 |
 | `/parallax:investor` (klarman) | ~5-7 |
 | `/parallax:investor` (soros single-ticker) | ~25-30 |

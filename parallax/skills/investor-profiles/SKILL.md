@@ -33,7 +33,7 @@ After any `get_peer_snapshot` call, cross-check the company identity field again
 
 | Tool | Field to check |
 |---|---|
-| `get_company_info` | `data.name` (the response wraps the company payload in a top-level `data` object — there is no top-level `name`) |
+| `get_company_info` | `data.name` for a single symbol. There is no top-level `name`. For a comma-separated batch `data` is an **array**, so `data.name` is undefined and each element must be matched by its `ric` first — call one symbol at a time for this check, per the conventions skill. |
 | `get_peer_snapshot` | `target_company` (top-level — NOT `name` on peer rows, which refers to each peer) |
 | `get_score_analysis` | Verify `data[0].symbol` matches requested RIC |
 
