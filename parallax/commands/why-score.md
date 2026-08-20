@@ -33,7 +33,7 @@ Parallel batch:
 | `get_peer_snapshot` | `symbol` | Current factor scores + peer context |
 | `get_score_analysis` | `symbol` | Trajectory (server-default window) |
 
-**Cross-validation gate (non-bypassable).** Check `get_peer_snapshot`'s top-level `target_company` against `get_company_info.name` — peer-row `name` refers to each peer, not the target. On mismatch, refuse to render the explanation: show both names and ask the user to confirm the intended company. Explaining a score is worthless if the score belongs to a different company.
+**Cross-validation gate (non-bypassable).** Check `get_peer_snapshot`'s top-level `target_company` against `get_company_info.data.name` — peer-row `name` refers to each peer, not the target. On mismatch, refuse to render the explanation: show both names and ask the user to confirm the intended company. Explaining a score is worthless if the score belongs to a different company.
 
 Then call `explain_methodology` (free) for every factor scoring ≥8 or ≤3, per the `parallax-scoring` skill's proactive trigger, plus any factor the user named.
 

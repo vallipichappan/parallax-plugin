@@ -33,7 +33,7 @@ After any `get_peer_snapshot` call, cross-check the company identity field again
 
 | Tool | Field to check |
 |---|---|
-| `get_company_info` | `name` |
+| `get_company_info` | `data.name` (the response wraps the company payload in a top-level `data` object — there is no top-level `name`) |
 | `get_peer_snapshot` | `target_company` (top-level — NOT `name` on peer rows, which refers to each peer) |
 | `get_score_analysis` | Verify `data[0].symbol` matches requested RIC |
 

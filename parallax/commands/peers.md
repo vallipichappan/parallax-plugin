@@ -21,7 +21,7 @@ Parallel:
 | `get_peer_snapshot` | `symbol` | Peer group + factor scores |
 | `export_peer_comparison` | `symbol`, `format="json"` | Structured peer matrix |
 
-**Cross-validation gate (non-bypassable).** Check `get_peer_snapshot`'s top-level `target_company` against `get_company_info.name`. Peer rows carry their own `name` field describing each peer — that is not the target's name and must never be used for this check. On mismatch, refuse to render the comparison: show both names and ask the user to confirm the intended company. A peer matrix built around the wrong primary is wrong in every row.
+**Cross-validation gate (non-bypassable).** Check `get_peer_snapshot`'s top-level `target_company` against `get_company_info.data.name`. Peer rows carry their own `name` field describing each peer — that is not the target's name and must never be used for this check. On mismatch, refuse to render the comparison: show both names and ask the user to confirm the intended company. A peer matrix built around the wrong primary is wrong in every row.
 
 From the snapshot, identify the peer group and the **top 2 most relevant peers** for the deeper legs.
 

@@ -76,7 +76,8 @@ Ask once: *"Country and regime read, a theme to screen, or a compliance/quality 
 | If they say… | Run |
 |---|---|
 | Regime / macro on [country] | `/parallax:macro` |
-| Theme (AI, defense, water, …) / ideas in a sector | `/parallax:universe` |
+| Ideas / shortlist / screen a theme | `/parallax:thematic-screen` |
+| Build a portfolio around a theme | `/parallax:universe` |
 | Halal / Shariah screen | `/parallax:screen` |
 | Earnings quality / accruals / red flags | `/parallax:screen` (quality mode) |
 | ETFs for a theme / fund overlap | `/parallax:etf` |

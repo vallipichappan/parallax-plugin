@@ -16,7 +16,7 @@ There is **no build step and no package manager**. The product remains markdown 
 parallax/
   .claude-plugin/plugin.json      Plugin manifest (name, version, userConfig for PARALLAX_API_KEY)
   .mcp.json                       Remote MCP server config (HTTP + Bearer ${PARALLAX_API_KEY})
-  commands/*.md                   15 slash commands (start, stock, peers, why-score, portfolio, explain, ...)
+  commands/*.md                   16 slash commands (start, stock, peers, why-score, portfolio, explain, ...)
   skills/<name>/SKILL.md          9 shared skills commands rely on (subdirectory layout is REQUIRED —
                                   the plugin loader only discovers skills/<name>/SKILL.md, never flat files)
 scripts/perimeter-scan.py         Pre-push perimeter guard (see Porting, below)

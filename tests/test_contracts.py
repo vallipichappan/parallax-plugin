@@ -32,9 +32,9 @@ class StructureTests(unittest.TestCase):
         self.assertIn("userConfig", plugin)
         self.assertNotIn("user_config", plugin)
         self.assertIn("parallax", mcp["mcpServers"])
-        self.assertEqual(len(command_files), 15)
+        self.assertEqual(len(command_files), 16)
         self.assertEqual(len(skill_files), 9)
-        self.assertIn("15 commands", plugin["description"])
+        self.assertIn("16 commands", plugin["description"])
 
     def test_all_frontmatter_is_complete(self) -> None:
         for path in COMMANDS.glob("*.md"):
@@ -110,6 +110,30 @@ class WorkflowContractTests(unittest.TestCase):
             with self.subTest(command=name):
                 self.assertIn("`get_company_info`", block)
         self.assertIn("`get_peer_snapshot`", scenario)
+
+    def test_cross_validation_names_the_wrapped_company_info_path(self) -> None:
+        """The name oracle lives at get_company_info.data.name.
+
+        The response wraps the company payload in a top-level `data` object, so
+        there is no top-level `name` field. Verified live 2026-08-20 against
+        https://mcp.chicago.global/api/mcp. A command that says
+        `get_company_info.name` sends the reader looking for a field that does
+        not exist, which silently weakens the non-bypassable cross-validation
+        gate.
+        """
+        sources = sorted(COMMANDS.glob("*.md")) + sorted(SKILLS.glob("*/SKILL.md"))
+        bare = re.compile(r"get_company_info\.name\b")
+        cited = 0
+        for path in sources:
+            text = read(path)
+            with self.subTest(path=path.relative_to(ROOT).as_posix()):
+                self.assertIsNone(
+                    bare.search(text),
+                    "use get_company_info.data.name — there is no top-level name field",
+                )
+            if "get_company_info.data.name" in text:
+                cited += 1
+        self.assertGreaterEqual(cited, 8, "cross-validation field path lost its citations")
 
     def test_explain_uses_neutral_classifications(self) -> None:
         text = read(COMMANDS / "explain.md")
@@ -206,6 +230,20 @@ class WorkflowContractTests(unittest.TestCase):
         text = read(COMMANDS / "investor.md")
         self.assertIn("without reconstructing a cutoff", text)
         self.assertIn("render `partial_match`", text)
+
+    def test_thematic_screen_is_not_a_portfolio_builder(self) -> None:
+        text = read(COMMANDS / "thematic-screen.md")
+        ranked_ideas = section(text, "**Ranked Ideas**", "- **Peer Comparison**")
+        columns = section(ranked_ideas, "then table: ", ".")
+        self.assertIn(
+            "This is a ranked idea list, not a weighted or validated portfolio "
+            "— no weights, redundancy check, or portfolio validation has been "
+            "run.",
+            text,
+        )
+        self.assertNotIn("weight", columns.lower())
+        self.assertNotIn("`check_portfolio_redundancy`", text)
+        self.assertNotIn("`analyze_portfolio`", text)
 
     def test_marketing_stock_call_count_matches_command(self) -> None:
         positioning = read(ROOT / "docs" / "positioning.md")

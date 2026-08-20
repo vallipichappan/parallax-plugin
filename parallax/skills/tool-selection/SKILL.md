@@ -19,7 +19,8 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "Quick factor check" | `quick_portfolio_scores` |
 | "Macro outlook for [country]" | `/parallax:macro` |
 | "Compare US vs Japan macro" | `/parallax:macro` (multi-country mode) |
-| "Find stocks that [theme]" | `/parallax:universe` |
+| "Thematic ideas for [X]" / "trade ideas around [X]" / "idea list for [theme]" | `/parallax:thematic-screen` — ranked idea list, no weights |
+| "Find stocks that [theme]" | `/parallax:thematic-screen` for a ranked shortlist; `/parallax:universe` if they want it weighted into a portfolio — ask once if unclear |
 | "Build me a portfolio for [theme]" | `/parallax:universe` |
 | "What's the news on [stock]?" | `get_news_synthesis` |
 | "What are the financials?" | `get_financials` |
@@ -63,6 +64,8 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "What can Parallax do?" / no specific ask | `/parallax:start` |
 
 Note `/parallax:explain` is drawdown attribution, not score methodology — score explanations are `/parallax:why-score`. `explain_methodology` is the raw tool behind the latter; prefer the command when the user wants an explanation rather than a definition.
+
+Three routes touch "ideas": `/parallax:universe` turns a user theme into a weighted portfolio; `/parallax:thematic-screen` turns a user theme into an unweighted ranked idea list; `/parallax:investor` (soros basket mode) derives ideas from the macro regime with no user theme supplied. A bare "screen for [theme]" routes to `/parallax:screen` (halal/quality) when it names a compliance or forensic filter (halal, Shariah, quality, forensic, accruals); otherwise treat it as "thematic ideas for [theme]" and route to `/parallax:thematic-screen`.
 
 Default for any ambiguous stock question: `get_peer_snapshot`.
 Default for any investor/legend/Buffett/Greenblatt/Klarman/Soros/Magic Formula/margin-of-safety question: `/parallax:investor`.

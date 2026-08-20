@@ -26,7 +26,7 @@ Fire all simultaneously once RIC is confirmed:
 | `get_stock_outlook` | `symbol`, aspect="dividends" | Dividend history (server-default depth) |
 | `get_news_synthesis` | `symbol` | Async — don't block output |
 
-**Cross-validation gate (non-bypassable):** check `get_peer_snapshot`'s top-level `target_company` against `get_company_info.name`. On mismatch, refuse to render the verdict — show both names and ask the user to confirm the intended company.
+**Cross-validation gate (non-bypassable):** check `get_peer_snapshot`'s top-level `target_company` against `get_company_info.data.name`. On mismatch, refuse to render the verdict — show both names and ask the user to confirm the intended company.
 
 ## Step 3 — Macro Context
 

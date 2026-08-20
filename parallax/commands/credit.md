@@ -26,7 +26,7 @@ Resolve the symbol with `search_stocks` first; fall back to the conventions skil
 | `get_peer_snapshot` | `symbol` | D/E peer median, factor scores |
 | `get_company_info` | `symbol` | Ground-truth name for cross-validation, sector, Market Cap |
 
-**Cross-validation (non-bypassable).** After `get_peer_snapshot`, compare the top-level `target_company` against `get_company_info.name` — peer rows carry their own `name` and refer to each peer, not the target. On mismatch, halt: do not render scores or peer-relative flags from a mismatched mapping.
+**Cross-validation (non-bypassable).** After `get_peer_snapshot`, compare the top-level `target_company` against `get_company_info.data.name` — peer rows carry their own `name` and refer to each peer, not the target. On mismatch, halt: do not render scores or peer-relative flags from a mismatched mapping.
 
 Derive: **Leverage** (Debt/EBITDA, Debt/Equity, Debt/Assets vs peer medians) · **Coverage** (interest coverage, EBITDA/interest) · **Liquidity** (current ratio, quick ratio) · **Profitability** (EBITDA, EBIT, FCF margins).
 

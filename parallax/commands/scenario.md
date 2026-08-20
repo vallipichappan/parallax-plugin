@@ -24,7 +24,7 @@ Gate before any trend scoring:
 
 1. Classify each holding with `etf_profile` per the asset-class-routing skill.
 2. For each equity, call `get_company_info` and `get_peer_snapshot` in parallel.
-3. Cross-validate `get_peer_snapshot.target_company` against `get_company_info.name` per the conventions skill.
+3. Cross-validate `get_peer_snapshot.target_company` against `get_company_info.data.name` per the conventions skill.
 4. Put mismatches in a ⚠ MISMATCH table and exclude them from every downstream factor or assessment input.
 
 Factor scores are equity-only. Do not call `get_score_analysis` for an ETF.

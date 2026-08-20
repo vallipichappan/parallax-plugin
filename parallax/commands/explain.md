@@ -51,7 +51,7 @@ Never silently zero or skip a holding. Compare the computed return against the u
 | `get_peer_snapshot` | per holding | Primary scoring source; aggregate client-side |
 | `get_company_info` | per holding | Ground-truth name oracle |
 
-**Cross-validation (non-bypassable).** After `get_peer_snapshot`, compare the top-level `target_company` against `get_company_info.name` — peer rows carry their own `name` and refer to each peer, not the target. On mismatch: exclude that holding from all aggregates, mark it ⚠ MISMATCH in the attribution table, and never render its scores.
+**Cross-validation (non-bypassable).** After `get_peer_snapshot`, compare the top-level `target_company` against `get_company_info.data.name` — peer rows carry their own `name` and refer to each peer, not the target. On mismatch: exclude that holding from all aggregates, mark it ⚠ MISMATCH in the attribution table, and never render its scores.
 
 Then call `macro_analyst` with component="tactical" per home market (cap 3). This establishes whether the loss is market-wide, sector rotation, or idiosyncratic.
 

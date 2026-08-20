@@ -55,7 +55,7 @@ A workflow that produced output is not thereby a workflow that succeeded.
 
 ## Cross-Validation
 
-After any scoring call that returns a company name, cross-check that name against `get_company_info`. Field mapping: `get_peer_snapshot` returns `target_company` at top level (NOT `name` on peer rows — those refer to each peer). `quick_portfolio_scores` returns `company_name` per holding row. `get_score_analysis` has no company-name field; verify `data[0].symbol` against the requested RIC and use the workflow's already-resolved company identity. Extra caution for `.HK`, `.T`, `.TW`, `.KS` codes.
+After any scoring call that returns a company name, cross-check that name against `get_company_info`. Field mapping: `get_company_info` returns the company payload wrapped in a top-level `data` object, so the ground-truth name is at `get_company_info.data.name` — there is no top-level `name` field. `get_peer_snapshot` returns `target_company` at top level (NOT `name` on peer rows — those refer to each peer). `quick_portfolio_scores` returns `company_name` per holding row. `get_score_analysis` has no company-name field; verify `data[0].symbol` against the requested RIC and use the workflow's already-resolved company identity. Extra caution for `.HK`, `.T`, `.TW`, `.KS` codes.
 
 **On mismatch:**
 - **Single-stock verdict flows** (stock, investor, credit, deep-dive): refuse to render the verdict; show both names and ask the user to confirm the intended company.
@@ -104,6 +104,22 @@ For single-stock or portfolio analysis, determine relevant markets from RIC suff
 4. Cap at 3 markets (single stock or portfolio).
 
 If `list_macro_countries` fails, derive from RIC suffixes: `.O`/`.N`/`.K` = US, `.T` = Japan, `.HK` = Hong Kong, `.L` = UK, `.DE` = Germany, `.SI` = Singapore.
+
+### RIC Suffix → Covered Macro Market
+
+For workflows that derive markets from a candidate set rather than a single home market (e.g. a multi-candidate screen), use this table against the RIC Resolution suffixes above. Only suffixes resolving to a currently-covered macro market are listed; verbatim-match the mapped name against the live `list_macro_countries` response before calling `macro_analyst` — never call on an unmatched name.
+
+| Suffix | Market |
+|---|---|
+| `.O`, `.N` | United States |
+| `.L` | United Kingdom |
+| `.DE` | Germany |
+| `.PA` | France |
+| `.T` | Japan |
+| `.TW` | Taiwan |
+| `.KS` | South Korea |
+
+`.HK`, `.AX`, `.OL` have no currently-covered macro market. A candidate on one of these exchanges gets no market tag — never substitute a nearby market (e.g. China for Hong Kong).
 
 ## Render Discipline
 

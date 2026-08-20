@@ -41,6 +41,7 @@ Estimates assume no cache hits and `export_price_series` at 0 tokens.
 | `/parallax:credit` | ~13-19 |
 | `/parallax:macro` | ~12 single market (+5 per additional market, +18 with equity opportunities) |
 | `/parallax:universe` | ~46 with 10 cross-validated candidates |
+| `/parallax:thematic-screen` | ~36 at 5 picks with 3 macro markets (~46 at 10 picks) |
 | `/parallax:etf` | ~2 single ETF, ~1 per ticker for a compare. `etf_profile` and `etf_daily_price` are 1 each; add an unpriced `etf_holdings` call for single-ETF and overlap modes |
 | `/parallax:screen` (halal) | ~8 |
 | `/parallax:screen` (quality) | ~24 |

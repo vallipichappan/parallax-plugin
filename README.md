@@ -68,6 +68,7 @@ claude
 | `/parallax:etf [ticker or theme]` | ETF research, comparison, holdings overlap, and search |
 | `/parallax:macro [country]` | Macro outlook — regime, indicators, sectors, rates, FX, equity opportunities |
 | `/parallax:universe [theme]` | Build a scored portfolio from a natural language investment thesis |
+| `/parallax:thematic-screen [theme]` | Thematic idea screen — ranked stock ideas with scores, macro context, and peer/financial detail (unweighted; use /parallax:universe for a portfolio) |
 | `/parallax:deep-dive [ticker]` | Deep fundamental + technical analysis with AI assessment |
 | `/parallax:screen [mode] [ticker]` | Shariah compliance screen (halal) or forensic earnings quality analysis |
 | `/parallax:scenario [event] portfolio=[...]` | Event-driven exposure analysis — what's at risk, what to rotate into |
@@ -90,6 +91,7 @@ claude
 /parallax:macro United States
 /parallax:macro compare US Japan
 /parallax:universe profitable AI infrastructure companies
+/parallax:thematic-screen energy transition pure plays
 /parallax:deep-dive TSLA "Is the robotaxi thesis priced in?"
 /parallax:screen halal AAPL
 /parallax:screen quality TSLA.O

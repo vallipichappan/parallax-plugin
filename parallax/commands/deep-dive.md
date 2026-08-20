@@ -25,7 +25,7 @@ Resolve the symbol via `search_stocks` (free) per the conventions skill first.
 
 For `get_technical_analysis`: poll `check_job_status` per the async-jobs skill. Do NOT retry the original tool call on timeout.
 
-**Cross-validation gate (non-bypassable):** check `get_peer_snapshot`'s top-level `target_company` against `get_company_info.name`. On mismatch, refuse to render — show both names and ask the user to confirm the intended company.
+**Cross-validation gate (non-bypassable):** check `get_peer_snapshot`'s top-level `target_company` against `get_company_info.data.name`. On mismatch, refuse to render — show both names and ask the user to confirm the intended company.
 
 ## Batch B — Macro context (start when company info resolves)
 
