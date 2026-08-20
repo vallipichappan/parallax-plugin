@@ -272,6 +272,43 @@ class WorkflowContractTests(unittest.TestCase):
                     "cost row names a candidate count the profile spec redacts",
                 )
 
+    def test_peer_snapshot_misleading_fields_are_documented(self) -> None:
+        """peer_count excludes the target and target_score is a string.
+
+        Verified live 2026-08-20 on OXB.L: peer_count=5 while the comparison
+        array held 6 rows, and target_score was "0.9/10 (Poor)". A workflow
+        that trusts either field renders a wrong peer count or a string where
+        a number belongs. Nothing reads them today; this locks the warning
+        before something does.
+        """
+        conventions = read(SKILLS / "conventions" / "SKILL.md")
+        self.assertIn("`peer_count` **excludes the target**", conventions)
+        self.assertIn("is_target", conventions)
+        self.assertIn("formatted **string**", conventions)
+
+    def test_readme_states_key_before_install_and_the_401_symptom(self) -> None:
+        """The install order is load-bearing and its failure mode is silent.
+
+        Installing before PARALLAX_API_KEY is set makes the server answer 401,
+        which makes Claude Code register `authenticate` /
+        `complete_authentication` placeholders instead of the real tools. That
+        state survives a restart and surfaces no error naming the key. This is
+        the same failure that blocked development on 2026-08-20, so it must
+        stay documented.
+        """
+        readme = read(ROOT / "README.md")
+
+        key_at = readme.index("export PARALLAX_API_KEY")
+        install_at = readme.index("claude plugin install")
+        self.assertLess(key_at, install_at, "README must set the key before install")
+
+        self.assertIn("The order matters", readme)
+        for token in ("401", "authenticate", "complete_authentication", "/mcp"):
+            with self.subTest(token=token):
+                self.assertIn(token, readme)
+        self.assertIn("Troubleshooting", readme)
+        self.assertIn("survive", readme.lower().replace("survives", "survive"))
+
     def test_explain_uses_neutral_classifications(self) -> None:
         text = read(COMMANDS / "explain.md")
         for phrase in ("Hold or add", "consider trim", "What To Do"):
