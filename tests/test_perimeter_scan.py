@@ -177,6 +177,72 @@ class PerimeterScanTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("factor-comparison", result.stdout)
 
+    def test_worded_and_variant_calibration_shapes_are_detected(self) -> None:
+        # Most lines scanned clean before the 2026-10-16 deferred-debt pass; the
+        # rest lock in existing coverage (Unicode operators, supermajority).
+        # Literals are split so this file does not trip the scan itself.
+        global_cases = [
+            ("factor-comparison", "A match needs Quality " + "above 7\n"),
+            ("factor-comparison", "Value at " + "least 7.0\n"),
+            ("factor-comparison", "Quality must " + "exceed 7\n"),
+            ("factor-comparison", "Quality " + "7+ only\n"),
+            ("factor-comparison", "Quality " + "≥ 7\n"),
+            ("factor-comparison", "Quality " + "> -1\n"),
+            ("factor-comparison", "quality" + ">.7\n"),
+            ("factor-comparison", "min_" + "quality=7\n"),
+            ("consensus-constant", "match when 3 of 4 " + "profiles agree\n"),
+            ("consensus-constant", "a 2/3 " + "majority\n"),
+            ("consensus-constant", "super" + "majority of 3\n"),
+        ]
+        investor_cases = [
+            ("percentile-band", "top 70" + "th-percentile\n"),
+            ("percentile-band", "top 30% " + "of peer universe\n"),
+            ("target-column", "| Factor | " + "Floor |\n|---|---|\n"),
+            ("target-column", "| Factor | " + "Required |\n|---|---|\n"),
+            ("target-column", "| Factor | " + "Min score |\n|---|---|\n"),
+            ("target-column", "| Factor | " + "Thresholds |\n|---|---|\n"),
+            ("percentile-band", "bottom 30% " + "of its peers\n"),
+            ("threshold-comparison", "Quality " + "≥7\n"),
+        ]
+        for path, cases in (
+            ("README.md", global_cases),
+            ("parallax/skills/investor-profiles/SKILL.md", investor_cases),
+        ):
+            for check, line in cases:
+                with self.subTest(line=line):
+                    self.write(path, line)
+                    self.git("add", "-A")
+                    result = self.scan()
+                    self.assertEqual(result.returncode, 1, result.stdout)
+                    self.assertIn(check, result.stdout)
+
+    def test_public_health_flag_cutoffs_stay_clean(self) -> None:
+        # health-flags states public cutoffs as "<factor> score <op> N"; the
+        # global checks must not flag that phrasing.
+        lines = (
+            "| **Value Trap** | Portfolio value score is low | `quick_portfolio_scores` | Portfolio value score <= 3.0 |\n"
+            "| **Low Score** | Portfolio overall score is weak | `quick_portfolio_scores` | Overall <= 5.0 |\n"
+            "Flag when the value score is below 3.0 for the book.\n"
+            "Momentum under 3 months tends to reverse; value over 10 years compounds.\n"
+        )
+        self.write("parallax/skills/health-flags/SKILL.md", lines)
+        self.git("add", "-A")
+
+        result = self.scan()
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+    def test_local_canary_in_the_scanner_itself_is_detected(self) -> None:
+        # The scanner is exempt from structural checks only. A partner name
+        # pasted into it ships publicly like any other file.
+        self.write("scripts/perimeter-scan.py", f"# {MARKER}\n")
+        self.git("add", "-A")
+
+        result = self.scan()
+
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("local canary hit", result.stdout)
+
     def test_public_percentile_band_outside_investor_files_is_allowed(self) -> None:
         self.write("parallax/commands/credit.md", "Worse than peer 75" + "th percentile\n")
         self.git("add", "-A")
