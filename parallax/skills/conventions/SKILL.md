@@ -81,7 +81,7 @@ Default to parallel where dependencies allow:
 
 **Stock outlook coverage:** 4 aspects (analyst_targets, recommendations, risk_return, dividends). 2+ return data → proceed. 0-1 → flag "Insight card may be materially incomplete."
 
-**Portfolio scoring coverage:** If `quick_portfolio_scores` covers <50% of holdings by weight → execute mixed-exchange fallback per health-flags skill. If total fail → individual `get_peer_snapshot` per holding (no trend data). If `check_portfolio_redundancy` covers <60% → flag as "Low confidence — limited coverage."
+**Portfolio scoring coverage:** If `quick_portfolio_scores` covers <50% of holdings by weight → execute mixed-exchange fallback per health-flags skill. If total fail → individual `get_peer_snapshot` per holding. This step returns no trend data; trend still comes from `get_score_analysis`. If `check_portfolio_redundancy` covers <60% → flag as "Low confidence — limited coverage."
 
 **Concentration caveat:** For <7 holdings, concentration flags (>15% single, >45% top-3) are structural. Note but don't alarm.
 

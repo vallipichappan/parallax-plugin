@@ -168,7 +168,7 @@ Same macro workflow (steps 1-4), then a dual-channel exposure check:
 **Verdict:** both channels flagged → `match`; one flagged → `partial_match`; neither → `no_match`. **`match` is NEVER reached when Channel B is UNAVAILABLE** — maximum is `partial_match`. These are discrete channels, so per the Verdict Sensitivity Guard there is no flip point to describe.
 
 **Tool sequence (basket):** `list_macro_countries`, `macro_analyst` per market, `get_telemetry`, `build_stock_universe` per theme, `get_peer_snapshot`, `get_company_info`. ~28-72 tokens.
-**Tool sequence (single-ticker):** Same macro and telemetry steps, then one targeted `get_company_info` check in place of the basket's per-theme leader snapshots. ~23-43 tokens.
+**Tool sequence (single-ticker):** Same macro and telemetry steps, one targeted `get_company_info` check in place of the basket's per-theme leader snapshots, and `build_stock_universe` per theme for Channel A1. ~23-43 tokens.
 
 ---
 

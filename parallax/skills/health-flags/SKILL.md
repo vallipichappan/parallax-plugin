@@ -58,7 +58,7 @@ Render any table using these labels with the §12 advice-boundary framing from t
 
 Apply the first row that matches, in this order: Exit, Trim, Reweight, Investigate, Hold. Every holding gets exactly one classification.
 
-When a holding has no score-trend data (for example, outside the top/bottom 5 analyzed in a large book, or on the per-holding fallback path), Exit cannot be evaluated. Classify a 3+ flag holding as Trim and note "trend not measured — Exit not evaluated."
+When a holding has no usable `get_score_analysis` result (not called, failed, or returned no trend; for example, outside the top/bottom 5 analyzed in a large book), Exit cannot be evaluated. Classify a 3+ flag holding as Trim and note "trend not measured — Exit not evaluated."
 
 Every classification must cite a **specific flag or data finding**. No generic advice.
 
@@ -86,7 +86,7 @@ Every classification must cite a **specific flag or data finding**. No generic a
    2. Score each exchange group separately.
    3. Merge into portfolio-weighted result.
    4. Note: "Scoring used split-and-merge due to partial coverage."
-3. **Per-holding path** — only if the batch path fails entirely: individual `get_peer_snapshot` + `get_company_info` cross-validation per holding (no trend data), with the same ⚠ MISMATCH exclusion.
+3. **Per-holding path** — only if the batch path fails entirely: individual `get_peer_snapshot` + `get_company_info` cross-validation per holding, with the same ⚠ MISMATCH exclusion. This step returns no trend data; trend still comes from `get_score_analysis`.
 
 If coverage remains <50% after split-and-merge: report available scores but flag "Scoring coverage is limited — health flags may not reflect the full portfolio."
 

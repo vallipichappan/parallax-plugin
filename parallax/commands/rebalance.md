@@ -50,7 +50,7 @@ After Batch A completes, render one summary line: "N/M holdings scored; sections
 1. Evaluate the 5 health flags per holding at **holding level** per the health-flags skill.
 2. Assign priority per the health-flags skill: **High** (3+ flags), **Medium** (2 flags), **Low** (1 flag).
 3. Determine classifications combining flags + score trends + macro (§12 framing per the conventions skill — these are threshold classifications, not instructions):
-   Apply the health-flags skill's Classification Types table exactly, including its precedence order and its rule for holdings with no trend data. Every holding gets exactly one classification. First match wins:
+   Apply the health-flags skill's Classification Types table exactly, including its precedence order and its rule for holdings with no usable `get_score_analysis` result. Every holding gets exactly one classification. First match wins:
    - **Exit:** 3+ flags + deteriorating score trend
    - **Trim:** concentration + other flags, or 3+ flags without a measured deteriorating trend
    - **Reweight:** concentration flag only
