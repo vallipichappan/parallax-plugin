@@ -24,7 +24,7 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "Build me a portfolio for [theme]" | `/parallax:universe` |
 | "What's the news on [stock]?" | `get_news_synthesis` |
 | "What are the financials?" | `get_financials` |
-| "What do analysts think?" | `get_stock_outlook` (aspect=analyst) |
+| "What do analysts think?" | `get_stock_outlook` (aspect="analyst_targets") |
 | "Price history / performance" | `export_price_series` (stocks, free) or `etf_daily_price` (ETFs) — route per asset-class-routing skill |
 | "Full research report PDF" | `get_stock_report` (~2 min) |
 | "Deep dive on [stock]" | `/parallax:deep-dive` |

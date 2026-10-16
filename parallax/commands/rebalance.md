@@ -48,13 +48,15 @@ After Batch A completes, render one summary line: "N/M holdings scored; sections
 ### Batch C — Health flags + classifications
 
 1. Evaluate the 5 health flags per holding at **holding level** per the health-flags skill.
-2. Assign priority: **High** (3+ flags) → Trim/Exit. **Medium** (2 flags) → Investigate/Trim. **Low** (1 flag) → Monitor/Hold.
+2. Assign priority per the health-flags skill: **High** (3+ flags), **Medium** (2 flags), **Low** (1 flag).
 3. Determine classifications combining flags + score trends + macro (§12 framing per the conventions skill — these are threshold classifications, not instructions):
-   - **Trim/Exit:** High priority, or declining scores + any flag
-   - **Hold:** Stable/improving scores, no flags
-   - **Reweight:** Concentration flag only, scores healthy
-   - **Investigate:** Medium priority, ambiguous signal → suggest `/parallax:deep-dive`
-4. For trim candidates: `build_stock_universe` with portfolio factor profile theme → `get_peer_snapshot` for replacement candidates. Drop any candidate whose returned name fails the cross-validation check against `get_company_info` — never propose a replacement from a mismatched mapping.
+   Apply the health-flags skill's Classification Types table exactly, including its precedence order and its rule for holdings with no trend data. Every holding gets exactly one classification. First match wins:
+   - **Exit:** 3+ flags + deteriorating score trend
+   - **Trim:** concentration + other flags, or 3+ flags without a measured deteriorating trend
+   - **Reweight:** concentration flag only
+   - **Investigate:** 1-2 flags, none of them concentration → suggest `/parallax:deep-dive`
+   - **Hold:** no flags (priority None)
+4. For Trim and Exit candidates: `build_stock_universe` with portfolio factor profile theme → `get_peer_snapshot` for replacement candidates. Drop any candidate whose returned name fails the cross-validation check against `get_company_info` — never propose a replacement from a mismatched mapping.
 
 **Atomic sizing gate:** if any holding needed for sizing lacks a verified identity, score, weight, or required allocation input, do not render proposed weights or the before/after comparison. Name each failed component and offer the operator a choice to correct or remove it. A partial research summary may still render.
 
@@ -63,7 +65,7 @@ After Batch A completes, render one summary line: "N/M holdings scored; sections
 `quick_portfolio_scores` on proposed new allocation to verify improvement vs current.
 
 
-**Universe reproducibility:** any candidate list here comes from `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering. Tell the user the candidate set is a point-in-time sample, per the conventions skill's Universe Search Reproducibility section.
+**Universe reproducibility:** any candidate list here comes from `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering. Tell the user the candidate set is a point-in-time sample, per the conventions skill's Universe Search Reproducibility section. Decide emptiness from the `companies` array alone, and when the response carries `degraded: true`, name the `relaxed` screens in a degraded-coverage note, per the same skill.
 
 ### Output
 
@@ -75,7 +77,7 @@ After Batch A completes, render one summary line: "N/M holdings scored; sections
 - **Macro Context** — relevant market outlook, sector implications
 - **Score Momentum** — table: each holding's trend (improving/stable/declining)
 - **Rebalancing Classifications** — informational preface, then table: Priority | Classification | Symbol | Current Weight | Threshold Result | Rationale (descriptive verbs; every row cites a specific flag or finding)
-- **Replacement Candidates** — if trimming, scored alternatives
+- **Replacement Candidates** — for Trim and Exit classifications, scored alternatives
 - **Before/After Comparison** — factor scores: current vs proposed
 - **Implementation Notes** — sequencing considerations, liquidity caveats (not validated against ADV/borrow)
 

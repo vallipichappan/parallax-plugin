@@ -15,7 +15,7 @@ There is **no build step and no package manager**. The product remains markdown 
 .github/workflows/validate.yml    PR gate: tests, public-safe perimeter scan, strict loader validation
 parallax/
   .claude-plugin/plugin.json      Plugin manifest (name, version, userConfig for PARALLAX_API_KEY)
-  .mcp.json                       Remote MCP server config (HTTP + Bearer ${PARALLAX_API_KEY})
+  .mcp.json                       Remote MCP server config (HTTP + Bearer ${user_config.PARALLAX_API_KEY})
   commands/*.md                   16 slash commands (start, stock, peers, why-score, portfolio, explain, ...)
   skills/<name>/SKILL.md          9 shared skills commands rely on (subdirectory layout is REQUIRED —
                                   the plugin loader only discovers skills/<name>/SKILL.md, never flat files)
@@ -24,7 +24,7 @@ tests/                            Standard-library regression and contract tests
 docs/positioning.md               Marketing/positioning reference
 ```
 
-Installation for end users: `claude plugin marketplace add vallipichappan/parallax-plugin` then `claude plugin install parallax@parallax-plugin`. Requires `PARALLAX_API_KEY` env var (or Cowork-injected via `userConfig`).
+Installation for end users: `claude plugin marketplace add vallipichappan/parallax-plugin` then `claude plugin install parallax@parallax-plugin`. The key is the `PARALLAX_API_KEY` userConfig option, entered at install or via `/plugin configure parallax@parallax-plugin`. `.mcp.json` reads it only as `${user_config.PARALLAX_API_KEY}`; a bare `${PARALLAX_API_KEY}` would read the shell environment and ignore the saved option.
 
 ## Architecture: Commands Orchestrate, Skills Specify
 

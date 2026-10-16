@@ -25,7 +25,7 @@ description: Per-tool token costs and cost-optimal routing rules for Parallax co
 3. **`get_assessment` is 10 tokens:** Call once per workflow after all data is assembled, not incrementally.
 4. **Free tools:** `explain_methodology` and `search_stocks` cost nothing — use liberally for score explanations and symbol resolution.
 5. **`macro_analyst` summary vs components:** A single call without `component` returns all 9 components inline (5 tokens). Per-component calls return identical content at 5 tokens each. Use summary mode for full macro analysis (`/parallax:macro`). Use component="tactical" when you only need the tactical slice (stock, portfolio, rebalance, scenario commands) — this returns the same content but signals intent.
-6. **Investor profiles vary ~50x in cost:** Buffett is 4 tokens; consensus on a 5-ticker basket runs 250+. When a user asks "what do the legends think about AAPL?" (consensus single-ticker), warn that this is ~70-80 tokens. Consensus basket-of-5 is the most expensive operation in the plugin.
+6. **Investor profiles vary ~50x in cost:** Buffett is 4 tokens; consensus on a 5-ticker basket runs 250+. When a user asks "what do the legends think about AAPL?" (consensus single-ticker), warn that this is ~67-94 tokens. Consensus basket-of-5 is the most expensive operation in the plugin.
 
 ## Workflow Cost Estimates
 
@@ -51,7 +51,7 @@ Estimates assume no cache hits and `export_price_series` at 0 tokens.
 | `/parallax:investor` (greenblatt ticker-check) | ~35-40 (dominated by the per-candidate `get_financials` ratios pull; scales linearly with the candidate cap) |
 | `/parallax:investor` (greenblatt universe) | ~35-40 |
 | `/parallax:investor` (klarman) | ~5-7 |
-| `/parallax:investor` (soros single-ticker) | ~25-30 |
-| `/parallax:investor` (soros basket) | ~28-55 |
-| `/parallax:investor` (consensus single) | ~70-80 |
-| `/parallax:investor` (consensus basket-5) | ~250-310 (Greenblatt universe pull may amortize across tickers; treat as upper bound) |
+| `/parallax:investor` (soros single-ticker) | ~23-43 |
+| `/parallax:investor` (soros basket) | ~28-72 |
+| `/parallax:investor` (consensus single) | ~67-94 |
+| `/parallax:investor` (consensus basket-5) | ~250-330 (Greenblatt universe pull may amortize across tickers; treat as upper bound) |

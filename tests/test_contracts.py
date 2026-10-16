@@ -286,21 +286,19 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn("is_target", conventions)
         self.assertIn("formatted **string**", conventions)
 
-    def test_readme_states_key_before_install_and_the_401_symptom(self) -> None:
-        """The install order is load-bearing and its failure mode is silent.
+    def test_readme_states_how_to_save_the_key_and_the_401_symptom(self) -> None:
+        """The key must be saved before first use, and the failure is silent.
 
-        Installing before PARALLAX_API_KEY is set makes the server answer 401,
-        which makes Claude Code register `authenticate` /
-        `complete_authentication` placeholders instead of the real tools. That
-        state survives a restart and surfaces no error naming the key. This is
-        the same failure that blocked development on 2026-08-20, so it must
-        stay documented.
+        If the plugin connects with no saved key, the server answers 401 and
+        Claude Code registers `authenticate` / `complete_authentication`
+        placeholders instead of the real tools. That state survives a restart
+        and surfaces no error naming the key. The key is a userConfig option,
+        so the README must show how to save it at install and afterwards.
         """
         readme = read(ROOT / "README.md")
 
-        key_at = readme.index("export PARALLAX_API_KEY")
-        install_at = readme.index("claude plugin install")
-        self.assertLess(key_at, install_at, "README must set the key before install")
+        self.assertIn("--config PARALLAX_API_KEY=", readme)
+        self.assertIn("/plugin configure parallax@parallax-plugin", readme)
 
         self.assertIn("The order matters", readme)
         for token in ("401", "authenticate", "complete_authentication", "/mcp"):
@@ -308,6 +306,19 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertIn(token, readme)
         self.assertIn("Troubleshooting", readme)
         self.assertIn("survive", readme.lower().replace("survives", "survive"))
+
+    def test_mcp_header_reads_the_declared_user_config_key(self) -> None:
+        """A bare ${PARALLAX_API_KEY} reads the shell env and ignores userConfig.
+
+        Claude Code substitutes a saved userConfig value into MCP config only
+        as ${user_config.KEY}. Any other form sends the user's entered key
+        nowhere and the server answers 401.
+        """
+        plugin = json.loads(read(ROOT / "parallax" / ".claude-plugin" / "plugin.json"))
+        mcp = json.loads(read(ROOT / "parallax" / ".mcp.json"))
+        self.assertIn("PARALLAX_API_KEY", plugin["userConfig"])
+        header = mcp["mcpServers"]["parallax"]["headers"]["Authorization"]
+        self.assertEqual(header, "Bearer ${user_config.PARALLAX_API_KEY}")
 
     def test_explain_uses_neutral_classifications(self) -> None:
         text = read(COMMANDS / "explain.md")

@@ -87,7 +87,7 @@ Default to parallel where dependencies allow:
 
 **`analyze_portfolio` truncation:** Responses may exceed 180K chars. If truncated, fall back to `check_portfolio_redundancy` + `quick_portfolio_scores`.
 
-**Empty output:** If a tool returns successfully but with no content, treat as failure and retry once (except the first-batch schema race above, which re-fires the whole batch).
+**Empty output:** If a tool returns successfully but with no content, treat as failure and retry once if it is an instant tool (except the first-batch schema race above, which re-fires the whole batch). Async tools are never retried, per the rule above.
 
 **Asset-class mismatches** (equity tool on an ETF or vice versa) fail empty, not loudly — route per the asset-class-routing skill before any price or scoring pull over mixed holdings.
 
@@ -125,7 +125,7 @@ For single-stock or portfolio analysis, determine relevant markets from RIC suff
 3. Call `macro_analyst` with component="tactical" per market.
 4. Cap at 3 markets (single stock or portfolio).
 
-If `list_macro_countries` fails, derive from RIC suffixes: `.O`/`.N`/`.K` = US, `.T` = Japan, `.HK` = Hong Kong, `.L` = UK, `.DE` = Germany, `.SI` = Singapore.
+If `list_macro_countries` fails, derive from RIC suffixes: `.O`/`.N`/`.K` = US, `.T` = Japan, `.L` = UK, `.DE` = Germany, `.SI` = Singapore. `.HK` gets no market, per the uncovered list below.
 
 ### RIC Suffix → Covered Macro Market
 
@@ -187,4 +187,4 @@ Every output must end with (immediately after the §9.2 banner):
 
 *"This is informational analysis based on Parallax factor scores, not investment advice. All outputs should be reviewed by qualified professionals before any investment decisions."*
 
-Commands with sanctioned domain-specific additions (scenario: hypothetical-scenario wording; halal screen: fatwa referral) append their addition after this base text — they do not replace it.
+Commands with sanctioned domain-specific additions (scenario: hypothetical-scenario wording; halal screen: fatwa referral) append their addition after this base text — they do not replace it. Two commands replace the base text by design: `/parallax:investor` renders the verbatim profile or consensus disclaimer from the investor-profiles skill in the §9.1 position, because it carries the same not-advice and professional-review content plus the attribution caveat; `/parallax:start` renders its routing disclaimer, because it produces no analysis itself.

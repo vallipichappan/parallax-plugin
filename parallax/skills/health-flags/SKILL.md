@@ -39,9 +39,10 @@ Priority determined by flag overlap on a single holding:
 
 | Priority | Condition | Typical Classifications |
 |---|---|---|
-| **High** | 3+ flags on one holding | Trim, Exit, Reweight |
+| **High** | 3+ flags on one holding | Exit, Trim |
 | **Medium** | 2 flags on one holding | Investigate, Trim |
-| **Low** | 1 flag only | Monitor, Hold |
+| **Low** | 1 flag only | Reweight (concentration flag), Investigate (any other flag) |
+| **None** | 0 flags | Hold |
 
 ## Classification Types
 
@@ -49,11 +50,15 @@ Render any table using these labels with the §12 advice-boundary framing from t
 
 | Classification | Threshold logic |
 |---|---|
-| **Trim** | Concentration + other flags — weight sits above threshold |
+| **Trim** | Concentration + other flags, or 3+ flags without a measured deteriorating trend |
 | **Exit** | 3+ flags + deteriorating score trend |
-| **Hold** | Stable/improving scores, no flags |
-| **Investigate** | 2 flags but ambiguous signal — suggest `/parallax:deep-dive` |
+| **Hold** | No flags. Note a deteriorating score trend if present |
+| **Investigate** | 1-2 flags, none of them concentration — suggest `/parallax:deep-dive` |
 | **Reweight** | Concentration without other flags |
+
+Apply the first row that matches, in this order: Exit, Trim, Reweight, Investigate, Hold. Every holding gets exactly one classification.
+
+When a holding has no score-trend data (for example, outside the top/bottom 5 analyzed in a large book, or on the per-holding fallback path), Exit cannot be evaluated. Classify a 3+ flag holding as Trim and note "trend not measured — Exit not evaluated."
 
 Every classification must cite a **specific flag or data finding**. No generic advice.
 
@@ -75,13 +80,13 @@ Every classification must cite a **specific flag or data finding**. No generic a
 
 ## Scoring Fallback Ladder
 
-1. **Per-holding path (preferred):** individual `get_peer_snapshot` + `get_company_info` cross-validation per the conventions skill — mismatched holdings are excluded from aggregates and listed in a ⚠ MISMATCH table.
-2. **Batch path:** `quick_portfolio_scores` with per-row `company_name` cross-checks.
-3. **Mixed-exchange split** — when batch coverage is <50% of holdings by weight:
+1. **Batch path (default):** `quick_portfolio_scores` with per-row `company_name` cross-checks per the conventions skill — mismatched holdings are excluded from aggregates and listed in a ⚠ MISMATCH table. This is the default per the token-costs skill.
+2. **Mixed-exchange split** — when batch coverage is <50% of holdings by weight:
    1. Split holdings by exchange suffix (`.O`/`.N` = US, `.L` = UK, etc.).
    2. Score each exchange group separately.
    3. Merge into portfolio-weighted result.
    4. Note: "Scoring used split-and-merge due to partial coverage."
+3. **Per-holding path** — only if the batch path fails entirely: individual `get_peer_snapshot` + `get_company_info` cross-validation per holding (no trend data), with the same ⚠ MISMATCH exclusion.
 
 If coverage remains <50% after split-and-merge: report available scores but flag "Scoring coverage is limited — health flags may not reflect the full portfolio."
 

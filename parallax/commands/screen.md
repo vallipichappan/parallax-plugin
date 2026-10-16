@@ -45,7 +45,7 @@ Resolve symbols via `search_stocks` (free) per the conventions skill.
 - **Compliance Results** — table: symbol, compliant Y/N, reason if non-compliant
 - **Key Ratios** — debt/assets %, interest-bearing/assets %, non-permissible revenue %
 - **Purification Amount** — if applicable
-- **Alternatives** — scored compliant replacements. These come from `build_stock_universe`, which is not reproducible run-to-run; say the alternatives are a point-in-time sample, per the conventions skill's Universe Search Reproducibility section.
+- **Alternatives** — scored compliant replacements. These come from `build_stock_universe`, which is not reproducible run-to-run; say the alternatives are a point-in-time sample, per the conventions skill's Universe Search Reproducibility section. Decide emptiness from the `companies` array alone, and when the response carries `degraded: true`, name the `relaxed` screens in a degraded-coverage note, per the same skill.
 
 Render the AI-interaction disclosure per the conventions skill §9.2, then end with the standard disclaimer from the conventions skill §9.1 plus the sanctioned halal addition: *"These screening results are not a fatwa. Consult a qualified Shariah advisor for binding rulings."*
 

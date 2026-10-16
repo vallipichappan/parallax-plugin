@@ -7,32 +7,34 @@ Institutional-grade investment research inside Claude. Powered by the [Parallax]
 ### Via Cowork (org install)
 
 Your org admin adds the plugin once via Organization Settings → Plugins. After that:
-- Cowork prompts you for the API key on first use and stores it automatically
+- Claude asks for the API key when the plugin is enabled and stores it as a sensitive setting
 - No shell config or permissions setup needed
 
 ### Manual install
 
-**1. Add your API key first** (get one at [chicago.global](https://chicago.global)):
+**1. Get your API key** at [chicago.global](https://chicago.global).
 
-```bash
-# Add to your shell profile (~/.zshrc or ~/.bashrc) for persistence:
-export PARALLAX_API_KEY=your_key_here
+**2. Install the plugin and enter the key.** The plugin stores the key as a sensitive setting in your system's secure credential store. It does not read a `PARALLAX_API_KEY` shell variable.
+
+Inside Claude, the install asks for the key:
+
+```text
+/plugin marketplace add vallipichappan/parallax-plugin
+/plugin install parallax@parallax-plugin
 ```
 
-**The order matters.** Install the plugin before the key is set and the server answers `401`. Claude Code then registers the two placeholder tools `authenticate` and `complete_authentication` instead of the real ones — and that state survives a restart. You get a plugin that looks installed, exposes two tools that do nothing useful, and reports no error pointing at the key. If you hit this, see Troubleshooting below.
-
-Open a new shell (or `source` your profile) so the variable is actually exported, then confirm:
-
-```bash
-echo "${PARALLAX_API_KEY:?PARALLAX_API_KEY is not set — do not continue}" > /dev/null && echo "key is set"
-```
-
-**2. Install the plugin:**
+From your shell, `claude plugin install` never prompts, so pass the key on the command line:
 
 ```bash
 claude plugin marketplace add vallipichappan/parallax-plugin
-claude plugin install parallax@parallax-plugin
+claude plugin install parallax@parallax-plugin --config PARALLAX_API_KEY=your_key_here
 ```
+
+A key passed with `--config` lands in your shell history, so prefer the in-Claude install. If you installed without the key, run `/plugin configure parallax@parallax-plugin` inside Claude before your first query.
+
+**Upgrading from 1.4.0 or earlier?** Those versions read a `PARALLAX_API_KEY` shell variable. 1.4.1 reads only the saved plugin setting, so run `/plugin configure parallax@parallax-plugin` once and enter your key. If Claude then offers only `authenticate`, run `/mcp` and reconnect the Parallax server.
+
+**The order matters.** If the plugin connects before a valid key is saved, the server answers `401`. Claude Code then registers the two placeholder tools `authenticate` and `complete_authentication` instead of the real ones — and that state survives a restart. You get a plugin that looks installed, exposes two tools that do nothing useful, and reports no error pointing at the key. If you hit this, see Troubleshooting below.
 
 **3. Start Claude:**
 
@@ -79,8 +81,8 @@ The server rejected your key, or there was no key when the plugin first connecte
 
 Fix it in this order:
 
-1. Confirm the key is actually exported in the shell that launched Claude: `echo $PARALLAX_API_KEY`. An empty result is the whole problem.
-2. Check the server is reachable and your key is accepted:
+1. Re-enter the key: run `/plugin configure parallax@parallax-plugin` inside Claude. A missing key is the most common cause.
+2. Check the server is reachable and your key is accepted. Export the key in your shell for this one test (`export PARALLAX_API_KEY=your_key_here`; it lands in shell history), then run:
    ```bash
    curl -s -o /dev/null -w '%{http_code}\n' -X POST https://mcp.chicago.global/api/mcp \
      -H "Authorization: Bearer $PARALLAX_API_KEY" \
@@ -167,4 +169,4 @@ margin of safety check on Tesla
 
 ## Permissions
 
-Step 3 of setup handles this automatically. If you skipped it or need to redo it, re-run the Python snippet from step 3, or run `/permissions` inside Claude and allow the Parallax server tools there.
+Claude asks permission the first time it calls a Parallax tool. To stop the prompts, follow optional step 4 of manual install: run `/permissions` inside Claude and allow the Parallax server tools, or use the scripted alternative in that step.

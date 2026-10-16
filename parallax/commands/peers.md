@@ -68,7 +68,7 @@ Where a factor score is ≥8 or ≤3, call `explain_methodology` (free) and weav
 
 ## Token cost
 
-~8 tokens: peer snapshot (1) + peer comparison export (1) + three score histories (3) + three `etf_profile` probes (3). `export_price_series` is free.
+~9 tokens: peer snapshot (1) + `get_company_info` (1) + peer comparison export (1) + three score histories (3) + three `etf_profile` probes (3). `export_price_series` is free.
 
 ## Render discipline
 

@@ -84,18 +84,18 @@ Do not add `get_peer_snapshot` solely for pedagogy. The financial ranking alread
 
 1. `get_company_info` to identify sector/industry.
 2. `build_stock_universe` with sector-based peer query (e.g., "US large-cap technology hardware" for AAPL).
-3. Cap the candidate set, pull ratios, rank per universe mode steps 3-4.
+3. Cap the candidate set, pull ratios, rank per universe mode steps 3-4. If the universe omitted the target or the cap cut it, add the target to the ranked set and say so in the output.
 4. Check target ticker's combined rank.
 
 ### Verdict (ticker-check)
 
-Report the target's observed combined rank and percentile within the peer universe. Map to match / partial_match / no_match per the investor-profiles skill; do not publish the percentile bands.
+Report the target's observed combined rank and percentile within the peer universe. This repo publishes no percentile bands, so the verdict turns on an unstated cutoff: render `partial_match` with the observed rank and percentile, per the investor-profiles skill's rule for unstated cutoffs. Never invent a band.
 
 ### Render
 
 Universe mode: ranked basket table. Ticker-check mode: percentile verdict. Substitute "Joel Greenblatt" in the disclaimer.
 
-**Universe reproducibility:** both modes rest on `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering, per the conventions skill's Universe Search Reproducibility section. State that the basket is a point-in-time sample. In ticker-check mode say so explicitly next to the verdict: the percentile is measured against a peer set that can differ between runs, so the verdict can move without anything about the company changing.
+**Universe reproducibility:** both modes rest on `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering, per the conventions skill's Universe Search Reproducibility section. Decide emptiness from the `companies` array alone, and when the response carries `degraded: true`, name the `relaxed` screens in a degraded-coverage note, per the same skill. State that the basket is a point-in-time sample. In ticker-check mode say so explicitly next to the verdict: the percentile is measured against a peer set that can differ between runs, so the verdict can move without anything about the company changing.
 
 ---
 
@@ -172,7 +172,7 @@ For basket mode (2-5 tickers): Buffett/Klarman/Greenblatt run per-ticker. Soros 
 
 Each profile returns:
 - `verdict`: match / partial_match / no_match / skipped
-- `verdict_detail`: e.g., "3 of 4 factor criteria met"
+- `verdict_detail`: e.g., "2 of 3 documented tilts met"
 - `factor_flags`: dict of factor/criterion → FLAGGED / NOT_FLAGGED
 - `fallback_notes`: any graceful fallback that affected the result
 
@@ -195,7 +195,7 @@ Profiles run: <N> of 4
 ## Per-profile verdict matrix
 | Profile       | Verdict       | Detail                              |
 |---------------|---------------|--------------------------------------|
-| Buffett       | <verdict>     | <N of 4 factor criteria met>         |
+| Buffett       | <verdict>     | <N of 3 documented tilts met>        |
 | Greenblatt    | <verdict>     | <top X% of peer universe>            |
 | Klarman       | <verdict>     | <N of 4 balance-sheet checks passed> |
 | Soros         | <verdict>     | <A=<status> B=<status>>              |

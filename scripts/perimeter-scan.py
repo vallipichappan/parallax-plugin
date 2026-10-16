@@ -125,7 +125,7 @@ def load_extras(default_path: Path) -> list[str] | None:
 STRUCTURAL_GLOBAL = [
     (
         "anchor-test",
-        re.compile(r"anchor test", re.IGNORECASE),
+        re.compile(r"anchor test|anchor-test\s*[:=(]|anchor-test[^\n]{0,40}\d", re.IGNORECASE),
         "an anchor-test reference — these are engine outputs on named tickers",
     ),
     (
@@ -135,8 +135,19 @@ STRUCTURAL_GLOBAL = [
     ),
     (
         "consensus-constant",
-        re.compile(r"ceil\s*\(|minimum_applicable_count"),
+        re.compile(
+            r"ceil\s*\(|minimum_applicable_count|super-?\s*majority[^\n]{0,40}\d",
+            re.IGNORECASE,
+        ),
         "a consensus aggregation constant",
+    ),
+    (
+        "factor-comparison",
+        re.compile(
+            r"\b(?:quality|value|momentum|defensive|tactical)\s*(?:>=|<=|>|<|≥|≤)\s*\d",
+            re.IGNORECASE,
+        ),
+        "a factor score compared against a number — a profile cutoff restated anywhere is published",
     ),
 ]
 
@@ -151,10 +162,30 @@ STRUCTURAL_SCOPED = [
     ),
     (
         "target-column",
-        re.compile(r"\|\s*target\s*\|", re.IGNORECASE),
-        "a 'Target' table column — profile outputs report observed values only",
+        re.compile(r"\|\s*(?:target|threshold|cutoff|min(?:imum)?)\s*\|", re.IGNORECASE),
+        "a Target/Threshold/Cutoff/Min table column — profile outputs report observed values only",
     ),
 ]
+
+STRUCTURAL_SCOPED.append(
+    (
+        "factor-score-comparison",
+        # "<factor> score <op> N" is also how health-flags states its public
+        # cutoffs, so this phrasing is checked only in investor files.
+        re.compile(
+            r"\b(?:quality|value|momentum|defensive|tactical)\s+score\s*(?:>=|<=|>|<|≥|≤)\s*\d",
+            re.IGNORECASE,
+        ),
+        "a factor score compared against a number — investor-profile criteria are expressed by direction",
+    )
+)
+STRUCTURAL_SCOPED.append(
+    (
+        "percentile-band",
+        re.compile(r"\b\d{1,2}(?:st|nd|rd|th)\s+percentile", re.IGNORECASE),
+        "a numeric percentile band — credit and other public bands live outside investor files",
+    )
+)
 
 STRUCTURAL_SCOPE = re.compile(r"investor", re.IGNORECASE)
 

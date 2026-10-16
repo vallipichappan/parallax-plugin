@@ -119,7 +119,7 @@ Never more than three. Examples: after a stock read, *"Want the peer comparison 
 - Open with exactly four branches.
 - One clarifying question inside a branch, then run. No quizzing.
 - Run the workflow as soon as the pick is clear — no confirmation step.
-- Every response after the opener ends with 2-3 nudges.
+- Every response after the opener carries 2-3 nudges, placed immediately above the §9.2 disclosure. Nothing renders below the disclaimer.
 - If they name a command directly, skip routing and run it.
 - Mention RIC format (`AAPL.O`) only if a resolution actually fails — `search_stocks` handles plain tickers.
 - If a workflow fails, stay calm and offer an alternative rather than a stack trace.

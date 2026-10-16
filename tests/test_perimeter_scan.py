@@ -139,6 +139,52 @@ class PerimeterScanTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("target-column", result.stdout)
 
+    def test_reviewed_calibration_leak_shapes_are_detected(self) -> None:
+        # Each line once scanned clean (ship-check review, 2026-10-16). The
+        # literals are split so this file does not trip the scan itself.
+        cases = [
+            ("factor-comparison", "Quality " + "> 7.0 and Value " + "> 6\n"),
+            ("factor-score-comparison", "Quality " + "score > 7\n"),
+            ("target-column", "| Factor | " + "Threshold |\n|---|---|\n"),
+            ("anchor" + "-test", "anchor-" + "test: XYZ scored 8.1\n"),
+            ("anchor" + "-test", "anchor-" + "tested on AAPL.O at 8.1\n"),
+            ("percentile-band", "at least 70" + "th percentile\n"),
+            ("consensus-constant", "super-" + "majority: 3 of 4\n"),
+        ]
+        for check, line in cases:
+            with self.subTest(line=line):
+                self.write("parallax/skills/investor-profiles/SKILL.md", line)
+                self.git("add", "-A")
+                result = self.scan()
+                self.assertEqual(result.returncode, 1, result.stdout)
+                self.assertIn(check, result.stdout)
+
+    def test_factor_cutoff_restated_outside_investor_files_is_detected(self) -> None:
+        self.write("README.md", "Buffett match needs Quality " + ">= 7\n")
+        self.git("add", "README.md")
+
+        result = self.scan()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("factor-comparison", result.stdout)
+
+    def test_factor_cutoff_written_as_percent_is_detected(self) -> None:
+        self.write("README.md", "Quality " + "> 15% of peers\n")
+        self.git("add", "README.md")
+
+        result = self.scan()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("factor-comparison", result.stdout)
+
+    def test_public_percentile_band_outside_investor_files_is_allowed(self) -> None:
+        self.write("parallax/commands/credit.md", "Worse than peer 75" + "th percentile\n")
+        self.git("add", "-A")
+
+        result = self.scan()
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

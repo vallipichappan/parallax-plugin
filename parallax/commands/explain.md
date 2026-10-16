@@ -36,9 +36,9 @@ Fire all of the following in a single tool-call turn:
 
 Compute per-holding close-to-close return over the period, weighted contribution (return × weight), total portfolio return, and rank holdings by contribution (biggest detractors first).
 
-**Halt rule — no silent drops.** If a holding returns empty/error from BOTH `etf_profile` and its routed price endpoint, render this banner *above* the attribution table:
+**Halt rule — no silent drops.** If a holding gets no price data, render this banner *above* the attribution table. A holding gets no price data when its routed endpoint returns empty or error: `etf_daily_price` for a holding `etf_profile` classified as an ETF, `export_price_series` otherwise. An ETF with a valid profile and an empty `etf_daily_price` response triggers the banner too.
 
-> ⚠ Cannot compute return for `<symbol>` — neither `export_price_series` nor `etf_daily_price` returned data. This holding is **not** included in the attribution below; the reported portfolio return is computed on the remaining `<X>%` of weight. Operator decision required: supply prices externally, or remove it from the portfolio for this analysis.
+> ⚠ Cannot compute return for `<symbol>` — its price endpoint returned no data. This holding is **not** included in the attribution below; the reported portfolio return is computed on the remaining `<X>%` of weight. Operator decision required: supply prices externally, or remove it from the portfolio for this analysis.
 
 Never silently zero or skip a holding. Compare the computed return against the user's stated figure; note any divergence >1%.
 
