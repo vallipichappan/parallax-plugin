@@ -14,7 +14,7 @@ Mismatched tool/asset-class pairs (e.g. `export_price_series("SPY")`) fail-empty
 | `export_price_series` | ✓ supported | ✗ returns `{success:false, error}` (NOT `[]`) | Equity-only, FREE. Pass RIC with exchange suffix. A `success:false` response is itself a usable equity/ETF discriminator. |
 | `etf_daily_price` | ✗ returns `[]` | ✓ supported | ETF-only. Pass plain ticker (no suffix). Returns per-row `date` + `changepercent` — move AND date in one call. 1 token. |
 | `etf_profile` | ✗ returns `{"error":"No profile data found"}` | ✓ rich profile (name, exchange, scores, recommendation, `change_percent`) | **The asset-class oracle.** Its `change_percent` carries NO as-of/date field — use `etf_daily_price` when a dated ETF move is needed. Single-symbol probe. 1 token. |
-| `search_etfs` | n/a | ✓ supported | Discovery by market / keyword / score. |
+| `search_etfs` | n/a | ✓ supported | Discovery by keyword, market, or currency. No score filters; profile the results and filter client-side. |
 | `etf_holdings` | n/a | ✓ supported | Underlying holdings of an ETF. |
 | `get_company_info` | ✓ supported | ✓ partial (returns an equity-shaped record for some ETFs) | **Has NO `asset_class` field** — cannot distinguish equity from ETF. Use `etf_profile` for that. |
 | `get_peer_snapshot` | ✓ supported | partial — peer set may include both | Sector ETFs occasionally appear as peers; classify each peer before any downstream price call. |

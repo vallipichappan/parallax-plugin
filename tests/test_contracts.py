@@ -370,9 +370,45 @@ class WorkflowContractTests(unittest.TestCase):
                     self.assertIn(field, text)
 
     def test_forbidden_numeric_tool_arguments_are_absent(self) -> None:
-        pattern = re.compile(r"\b(?:weeks|periods|limit|days)\s*=\s*\d+")
-        for path in COMMANDS.glob("*.md"):
+        pattern = re.compile(r"\b(?:weeks|periods|limit|days)\s*[:=]\s*[\"']?\d")
+        paths = [*COMMANDS.glob("*.md"), *SKILLS.glob("*/SKILL.md")]
+        for path in paths:
             self.assertIsNone(pattern.search(read(path)), path.name)
+
+    def test_search_etfs_is_called_with_schema_params_only(self) -> None:
+        # The server schema accepts query, limit, market, currency. Anything
+        # else is silently ignored, so a factor filter returns unfiltered
+        # results (verified live 2026-10-16).
+        paths = [*COMMANDS.glob("*.md"), *SKILLS.glob("*/SKILL.md")]
+        for path in paths:
+            self.assertNotRegex(read(path), r"\bmin_(?:quality|value|momentum|defensive|tactical)\b", path.name)
+        routing = read(SKILLS / "asset-class-routing" / "SKILL.md")
+        row = next(line for line in routing.splitlines() if line.startswith("| `search_etfs`"))
+        self.assertNotRegex(row.lower(), r"discovery by[^.|]*\bscore")
+        self.assertIn("has_scores: true", read(COMMANDS / "etf.md"))
+
+    def test_token_costs_prices_every_tool_and_every_command(self) -> None:
+        costs = read(SKILLS / "token-costs" / "SKILL.md")
+        self.assertNotIn("UNVERIFIED", costs)
+        self.assertNotRegex(costs, r"(?i)unpriced")
+        self.assertNotRegex(read(COMMANDS / "etf.md"), r"(?i)unpriced")
+        free_row = next(line for line in costs.splitlines() if "**0 (free)**" in line)
+        self.assertNotIn("`search_etfs`", free_row)
+        one_row = next(line for line in costs.splitlines() if "**1 each**" in line)
+        for tool in ("`search_etfs`", "`etf_holdings`"):
+            self.assertIn(tool, one_row)
+        workflows = costs.split("## Workflow Cost Estimates", 1)[1]
+        for path in COMMANDS.glob("*.md"):
+            with self.subTest(command=path.stem):
+                self.assertIn(f"`/parallax:{path.stem}`", workflows)
+
+    def test_ci_validates_with_a_cli_that_checks_user_config(self) -> None:
+        # ${user_config.*} in .mcp.json is validated only from 2.1.281.
+        workflow = read(ROOT / ".github" / "workflows" / "validate.yml")
+        pins = re.findall(r"@anthropic-ai/claude-code@(\d+)\.(\d+)\.(\d+)", workflow)
+        self.assertEqual(len(pins), 2)
+        for pin in pins:
+            self.assertGreaterEqual(tuple(int(part) for part in pin), (2, 1, 281))
 
     def test_terminal_compliance_order_is_explicit(self) -> None:
         for path in COMMANDS.glob("*.md"):

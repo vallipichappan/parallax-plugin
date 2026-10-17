@@ -41,7 +41,7 @@ A command like `stock.md` will say "apply cross-validation per conventions skill
 |---|---|
 | `conventions` | RIC resolution table, cross-validation gate, parallel vs dependent tools, fallback rules (instant/async), verbatim disclaimer. Applies to every command. |
 | `tool-selection` | Decision table mapping user utterances → MCP tool or slash command. |
-| `token-costs` | Per-tool token cost table + routing rules. `quick_portfolio_scores` is the default scoring path; `analyze_portfolio` is a performance-analytics product, preferred for scoring economy only at 15+ holdings. `etf_profile`/`etf_daily_price` priced at 1; only `etf_holdings` remains unverified. |
+| `token-costs` | Per-tool token cost table + routing rules. `quick_portfolio_scores` is the default scoring path; `analyze_portfolio` is a performance-analytics product, preferred for scoring economy only at 15+ holdings. All four ETF tools (`search_etfs`, `etf_profile`, `etf_holdings`, `etf_daily_price`) priced at 1. |
 | `response-shapes` | Valid `fields` names for `analyze_portfolio` and `get_telemetry`. Both are **passthrough** params — an invalid name fails silently rather than erroring, so field names come from here, never from inference. |
 | `async-jobs` | Polling pattern for `check_job_status`; which tools are async and their wait times. |
 | `health-flags` | 5-flag portfolio health system, priority matrix, drill-down selection, mixed-exchange fallback. Used by `/parallax:portfolio` and `/parallax:rebalance`. |

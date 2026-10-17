@@ -49,9 +49,11 @@ EXTRAS_ENV = "PARALLAX_CANARY_EXTRA"
 DEFAULT_EXTRAS = Path.home() / ".claude" / "parallax-canary-extra.txt"
 
 # This scanner names the patterns it hunts for, so it is the one file exempt
-# from its own checks. Nothing else is blanket-exempt — in particular CLAUDE.md
-# is scanned, because repo-guidance files are a real carrier for calibration
-# restated as an "invariant" and they ship on the same push as everything else.
+# from its own STRUCTURAL checks. It still gets the branding and local canary
+# checks: it is public, and a term pasted into it ships like any other file.
+# Nothing else is exempt — in particular CLAUDE.md is scanned, because
+# repo-guidance files are a real carrier for calibration restated as an
+# "invariant" and they ship on the same push as everything else.
 SELF_REFERENTIAL = {
     "scripts/perimeter-scan.py",
 }
@@ -118,6 +120,9 @@ def load_extras(default_path: Path) -> list[str] | None:
 
 # Structural tells that published calibration has re-entered the repo. These
 # match the SHAPE of a threshold spec, not any particular value.
+FACTOR = r"(?:quality|value|momentum|defensive|tactical)"
+# A cutoff value: optional sign, optional leading decimal point.
+NUM = r"[+-]?\.?\d"
 #
 # GLOBAL checks run over every tracked file. Their patterns are specific enough
 # that a hit anywhere is worth a look — and calibration restated in a README or
@@ -136,15 +141,25 @@ STRUCTURAL_GLOBAL = [
     (
         "consensus-constant",
         re.compile(
-            r"ceil\s*\(|minimum_applicable_count|super-?\s*majority[^\n]{0,40}\d",
+            r"ceil\s*\(|minimum_applicable_count|super-?\s*majority[^\n]{0,40}\d"
+            r"|\b\d+\s*(?:of|/)\s*\d+\s+(?:\w+\s+)?(?:profiles|majority)\b",
             re.IGNORECASE,
         ),
         "a consensus aggregation constant",
     ),
     (
         "factor-comparison",
+        # Symbolic operators, worded operators ("Quality above 7"), "N+", and
+        # parameter form ("min_quality=7"). Worded forms must follow the factor
+        # name directly, so health-flags' "value score is below 3.0" stays clean.
+        # "over" and "under" are left out: "value over 10 years" and
+        # "momentum under 3 months" are ordinary prose.
         re.compile(
-            r"\b(?:quality|value|momentum|defensive|tactical)\s*(?:>=|<=|>|<|≥|≤)\s*\d",
+            rf"\b{FACTOR}\s*(?:>=|<=|>|<|≥|≤)\s*{NUM}"
+            rf"|\b{FACTOR}\s+(?:(?:must|should|is)\s+)?"
+            rf"(?:above|below|exceeds?|at\s+least|at\s+most)\s+{NUM}"
+            rf"|\b{FACTOR}\s+\d+(?:\.\d+)?\+"
+            rf"|\bmin_{FACTOR}\s*[:=]\s*{NUM}",
             re.IGNORECASE,
         ),
         "a factor score compared against a number — a profile cutoff restated anywhere is published",
@@ -162,8 +177,11 @@ STRUCTURAL_SCOPED = [
     ),
     (
         "target-column",
-        re.compile(r"\|\s*(?:target|threshold|cutoff|min(?:imum)?)\s*\|", re.IGNORECASE),
-        "a Target/Threshold/Cutoff/Min table column — profile outputs report observed values only",
+        re.compile(
+            r"\|\s*(?:targets?|thresholds?|cutoffs?|floors?|required|min(?:imum)?)(?:\s+\w+)?\s*\|",
+            re.IGNORECASE,
+        ),
+        "a Target/Threshold/Cutoff/Floor/Required/Min table column — profile outputs report observed values only",
     ),
 ]
 
@@ -182,7 +200,10 @@ STRUCTURAL_SCOPED.append(
 STRUCTURAL_SCOPED.append(
     (
         "percentile-band",
-        re.compile(r"\b\d{1,2}(?:st|nd|rd|th)\s+percentile", re.IGNORECASE),
+        re.compile(
+            r"\b\d{1,2}(?:st|nd|rd|th)[\s-]+percentile|\b(?:top|bottom)\s+\d{1,2}\s*%\s+of\s+(?:the\s+|its\s+)?peer",
+            re.IGNORECASE,
+        ),
         "a numeric percentile band — credit and other public bands live outside investor files",
     )
 )
@@ -212,11 +233,7 @@ def scan(repo: Path, source: str) -> int:
     notices: list[str] = []
 
     files = tracked_files(repo, source)
-    texts = {
-        rel: file_text(repo, rel, source)
-        for rel in files
-        if rel not in SELF_REFERENTIAL
-    }
+    texts = {rel: file_text(repo, rel, source) for rel in files}
 
     # --- 1. Branding canaries over files and commit messages -----------------
     canaries = branding_canaries()
@@ -262,6 +279,8 @@ def scan(repo: Path, source: str) -> int:
 
     # --- 3. Structural calibration tells -------------------------------------
     for rel, text in texts.items():
+        if rel in SELF_REFERENTIAL:
+            continue
         checks = list(STRUCTURAL_GLOBAL)
         if STRUCTURAL_SCOPE.search(rel):
             checks += STRUCTURAL_SCOPED
