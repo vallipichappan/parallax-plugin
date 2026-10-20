@@ -11,6 +11,11 @@ release candidate rather than unrelated or cleaner worktree bytes. Use
 ``--source head`` after committing. ``--source worktree`` is diagnostic only;
 it still limits the file list to paths tracked by the index.
 
+Before pushing, also use ``--range BASE..TIP`` with the remote's existing
+commit and the proposed tip. Every commit tree in that range is checked,
+including content removed before TIP. Full history is required. A new branch
+must use its actual already-published base; absent/invalid refs fail closed.
+
 Exit 0 = clean. Exit 1 = findings. Exit 2 = incomplete or failed scan.
 
 WHY THIS EXISTS
@@ -103,6 +108,43 @@ def commit_messages(repo: Path) -> str:
     return git(repo, "log", "--all", "--format=%B").decode(
         "utf-8", errors="replace"
     )
+
+
+def range_content(repo: Path, revision_range: str) -> tuple[dict[str, str], dict[str, str], str]:
+    """Read every commit tree in BASE..TIP; cache bytes, retain path-specific checks."""
+    endpoints = revision_range.split("..")
+    if len(endpoints) != 2 or not all(endpoints) or any(p.startswith("-") for p in endpoints):
+        raise ValueError("--range requires explicit BASE..TIP commit references")
+    base, tip = [git(repo, "rev-parse", "--verify", f"{p}^{{commit}}").decode().strip()
+                 for p in endpoints]
+    if git(repo, "rev-parse", "--is-shallow-repository").strip() == b"true":
+        raise ValueError("range scanning requires full history; fetch unshallow first")
+    commits = git(repo, "rev-list", f"{base}..{tip}").decode().splitlines()
+    blobs: dict[str, str] = {}
+    texts: dict[str, str] = {}
+    paths: dict[str, str] = {}
+    seen: set[tuple[str, str]] = set()
+    messages = []
+    for commit in commits:
+        messages.append(git(repo, "show", "-s", "--format=%B", commit).decode("utf-8", errors="replace"))
+        for entry in git(repo, "ls-tree", "-r", "-z", commit).split(b"\0"):
+            if not entry:
+                continue
+            metadata, raw_path = entry.split(b"\t", 1)
+            _, kind, raw_oid = metadata.split()
+            if kind != b"blob":
+                raise ValueError("range contains a submodule; its contents require a separate scan")
+            oid = raw_oid.decode("ascii")
+            path = raw_path.decode("utf-8", errors="surrogateescape")
+            if (oid, path) in seen:
+                continue
+            seen.add((oid, path))
+            if oid not in blobs:
+                blobs[oid] = git(repo, "cat-file", "blob", oid).decode("utf-8", errors="replace")
+            label = f"{commit}:{path}"
+            texts[label] = blobs[oid]
+            paths[label] = path
+    return texts, paths, "\n".join(messages)
 
 
 def load_extras(default_path: Path) -> list[str] | None:
@@ -219,21 +261,30 @@ def parse_args() -> Namespace:
         default=DEFAULT_REPO,
         help="repository to scan",
     )
-    parser.add_argument(
+    scope = parser.add_mutually_exclusive_group()
+    scope.add_argument(
         "--source",
         choices=("index", "head", "worktree"),
         default="index",
         help="content source to scan; index matches the staged release candidate",
     )
+    scope.add_argument("--range", dest="revision_range", help="scan every commit in BASE..TIP, including removed content")
     return parser.parse_args()
 
 
-def scan(repo: Path, source: str) -> int:
+def scan(repo: Path, source: str, revision_range: str | None = None) -> int:
     findings: list[str] = []
     notices: list[str] = []
 
-    files = tracked_files(repo, source)
-    texts = {rel: file_text(repo, rel, source) for rel in files}
+    if revision_range is not None:
+        texts, paths, msgs = range_content(repo, revision_range)
+        files = list(texts)
+        source = f"range {revision_range}"
+    else:
+        files = tracked_files(repo, source)
+        texts = {rel: file_text(repo, rel, source) for rel in files}
+        paths = {rel: rel for rel in files}
+        msgs = commit_messages(repo)
 
     # --- 1. Branding canaries over files and commit messages -----------------
     canaries = branding_canaries()
@@ -243,7 +294,6 @@ def scan(repo: Path, source: str) -> int:
                 for n, line in enumerate(text.splitlines(), 1):
                     if term.lower() in line.lower():
                         findings.append(f"{rel}:{n}: branding canary hit")
-    msgs = commit_messages(repo)
     for term in canaries:
         if term.lower() in msgs.lower():
             findings.append("commit messages: branding canary hit")
@@ -279,10 +329,10 @@ def scan(repo: Path, source: str) -> int:
 
     # --- 3. Structural calibration tells -------------------------------------
     for rel, text in texts.items():
-        if rel in SELF_REFERENTIAL:
+        if paths[rel] in SELF_REFERENTIAL:
             continue
         checks = list(STRUCTURAL_GLOBAL)
-        if STRUCTURAL_SCOPE.search(rel):
+        if STRUCTURAL_SCOPE.search(paths[rel]):
             checks += STRUCTURAL_SCOPED
         for n, line in enumerate(text.splitlines(), 1):
             for name, pat, why in checks:
@@ -303,15 +353,16 @@ def scan(repo: Path, source: str) -> int:
         )
         return 1
 
-    print(f"perimeter-scan: clean ({len(files)} tracked files from {source})")
+    status = "partial scan: built-in checks passed" if notices else "clean"
+    print(f"perimeter-scan: {status} ({len(files)} tracked file versions from {source})")
     return 0
 
 
 def main() -> int:
     args = parse_args()
     try:
-        return scan(args.repo.resolve(), args.source)
-    except (OSError, subprocess.CalledProcessError) as exc:
+        return scan(args.repo.resolve(), args.source, args.revision_range)
+    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"perimeter-scan: could not scan: {exc}", file=sys.stderr)
         return 2
 

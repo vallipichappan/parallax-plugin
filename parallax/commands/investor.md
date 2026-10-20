@@ -178,7 +178,7 @@ Each profile returns:
 
 ### Compute Consensus
 
-Apply the aggregation rules from the investor-profiles skill (`A` = applicable profiles, `M` = full matches only). Signal is YES, NO, or INSUFFICIENT_PROFILES. The super-majority constant and minimum applicable count are calibration — do not state, derive, or approximate them in output.
+Render "Consensus unavailable — requires server-side calibration." Follow the investor-profiles skill: report applicable profiles and full matches as descriptive counts only, alongside the per-profile verdicts. Even complete profile data cannot supply the missing calibration; never infer YES, NO, or INSUFFICIENT_PROFILES.
 
 ### Factor-Level Agreement (load-bearing)
 
@@ -203,7 +203,7 @@ Profiles run: <N> of 4
 ## Consensus signal
 Applicable (A): <count>
 Full matches (M): <count>
-Consensus: YES / NO / INSUFFICIENT_PROFILES
+Consensus unavailable — requires server-side calibration
 
 ## Shared factor signal
 Flagged by more than one matching profile: <list>
@@ -233,4 +233,4 @@ Apply the Verdict Sensitivity Guard from the investor-profiles skill: never stat
 - Verdict on incomplete data → capped at `partial_match`, cannot be `match`
 - Greenblatt: INSUFFICIENT_UNIVERSE if <10 names after expansion
 - Soros: Channel B UNAVAILABLE caps verdict at partial_match
-- Consensus: profile failures → `skipped`, proceed with remaining. Too few applicable profiles → INSUFFICIENT_PROFILES
+- Consensus: profile failures → `skipped`, proceed with remaining. Report skipped-profile reasons; consensus remains unavailable

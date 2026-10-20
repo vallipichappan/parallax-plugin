@@ -181,12 +181,7 @@ Runs all 4 profiles in parallel against a ticker (or basket, cap 5). Aggregates 
 - `A` = applicable profiles (match / partial_match / no_match; excludes `skipped`)
 - `M` = profiles that returned `match` only — `partial_match` never counts toward `M`
 
-**Signal:**
-- `INSUFFICIENT_PROFILES` when too few profiles are applicable to aggregate
-- `YES` when enough profiles are applicable AND `M` clears a strict super-majority of `A`
-- `NO` when enough profiles are applicable AND `M` does not clear it
-
-The super-majority constant and the minimum applicable count are calibration and are **not published here**. Do not state, derive, or approximate them in output — report the signal and the underlying per-profile verdicts, which are what the user needs. The threshold does not weaken as `A` shrinks.
+**Signal:** always render "Consensus unavailable — requires server-side calibration." This applies even when every profile completed successfully. No configured tool returns the calibrated consensus signal, and the required constants are deliberately absent. Do not derive YES, NO, or INSUFFICIENT_PROFILES from the counts. Keep the per-profile verdict matrix, applicable count, full-match count, and factor-level agreement; they remain useful without an aggregate verdict.
 
 ### Factor-Level Agreement
 
@@ -200,7 +195,7 @@ Cross-profile agreement IS the high-conviction signal. This section is pedagogic
 ### Graceful Fallback
 
 - Profile tool failure after retry → `skipped`, consensus continues with remaining
-- Too few applicable profiles → `INSUFFICIENT_PROFILES` (not NO)
+- Skipped profiles reduce coverage; report their reasons and retain the unavailable consensus signal.
 - Partial data verdict → capped at `partial_match`, cannot be `match`
 
 ### Token Cost

@@ -89,7 +89,7 @@ To verify a change:
 3. Install the plugin locally: `claude plugin install parallax@parallax-plugin` after `marketplace add` points at the local path.
 4. Run the affected command against a representative symbol and confirm the tool sequence fires as written.
 5. Confirm the cross-validation gate, fallback rules, and disclaimer text fire as specified.
-6. Stage the release candidate and run `python3 scripts/perimeter-scan.py` — exit 0 required.
+6. Stage the release candidate and run `python3 scripts/perimeter-scan.py` — exit 0 required. Before pushing, also run `python3 scripts/perimeter-scan.py --range BASE..TIP` using the remote's existing commit and the proposed tip. A snapshot scan cannot detect content removed in an intermediate commit. CI scans the PR base-to-head range with public checks only; private canary coverage still requires the local extras file. Historical findings require review, not an automatic history rewrite.
 
 **A referenced skill is a directive, not a guarantee.** Commands delegate rules by prose reference, and nothing enforces that the referenced skill was actually loaded and applied. When verifying, check that the *behavior* the skill specifies appears in the output — not merely that the command names the skill.
 

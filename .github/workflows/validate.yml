@@ -27,10 +27,14 @@ jobs:
       - name: Run regression tests
         run: python3 -m unittest discover -s tests -p 'test_*.py'
 
-      - name: Run public-safe perimeter scan
+      - name: Run partial public perimeter scan over introduced commits
         env:
           PARALLAX_ALLOW_PARTIAL_SCAN: "1"
-        run: python3 scripts/perimeter-scan.py --source head
+          SCAN_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          SCAN_TIP: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          echo "Partial perimeter scan: private canary terms were not supplied by CI." >> "$GITHUB_STEP_SUMMARY"
+          python3 scripts/perimeter-scan.py --range "$SCAN_BASE..$SCAN_TIP"
 
       - name: Validate Claude plugin
         run: |

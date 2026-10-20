@@ -14,6 +14,52 @@ MARKER = "synthetic-private-marker"
 
 
 class PerimeterScanTests(unittest.TestCase):
+    def test_range_catches_removed_content(self) -> None:
+        base = self.git("rev-parse", "HEAD").stdout.strip()
+        self.write("README.md", MARKER + "\n")
+        self.git("add", "-A")
+        self.git("commit", "--quiet", "-m", "intermediate")
+        self.write("README.md", "safe again\n")
+        self.git("add", "-A")
+        self.git("commit", "--quiet", "-m", "cleanup")
+        self.assertEqual(self.scan("--source", "head").returncode, 0)
+        result = self.scan("--range", f"{base}..HEAD")
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("local canary hit", result.stdout)
+        self.assertNotIn(MARKER, result.stdout)
+
+    def test_range_checks_structural_rules_at_historical_paths(self) -> None:
+        base = self.git("rev-parse", "HEAD").stdout.strip()
+        self.write("investor-notes.md", "| Observed | " + "Target |\n")
+        self.git("add", "-A")
+        self.git("commit", "--quiet", "-m", "intermediate")
+        self.git("rm", "investor-notes.md")
+        self.git("commit", "--quiet", "-m", "cleanup")
+        result = self.scan("--range", f"{base}..HEAD")
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("target-column", result.stdout)
+
+    def test_clean_and_empty_ranges_pass(self) -> None:
+        base = self.git("rev-parse", "HEAD").stdout.strip()
+        self.write("README.md", "another safe version\n")
+        self.git("add", "-A")
+        self.git("commit", "--quiet", "-m", "safe update")
+        for value in (f"{base}..HEAD", "HEAD..HEAD"):
+            result = self.scan("--range", value)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_invalid_ranges_fail_closed(self) -> None:
+        for value in ("", "missing..HEAD", "HEAD", "HEAD...HEAD", "..HEAD", "--all..HEAD"):
+            result = self.scan("--range", value)
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+
+    def test_range_scans_commit_messages(self) -> None:
+        base = self.git("rev-parse", "HEAD").stdout.strip()
+        self.git("commit", "--allow-empty", "--quiet", "-m", MARKER)
+        result = self.scan("--range", f"{base}..HEAD")
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("commit messages: local canary hit", result.stdout)
+
     def setUp(self) -> None:
         self.tempdir = tempfile.TemporaryDirectory()
         self.addCleanup(self.tempdir.cleanup)

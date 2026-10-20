@@ -71,6 +71,28 @@ class StructureTests(unittest.TestCase):
 
 
 class WorkflowContractTests(unittest.TestCase):
+    def test_consensus_with_complete_profiles_still_withholds_signal(self) -> None:
+        command = read(COMMANDS / "investor.md")
+        skill = read(SKILLS / "investor-profiles" / "SKILL.md")
+        for text in (command, skill):
+            self.assertIn("Consensus unavailable — requires server-side calibration", text)
+        aggregation = section(skill, "### Aggregation", "### Factor-Level Agreement")
+        self.assertIn("even when every profile completed successfully", aggregation)
+        self.assertNotIn("`YES` when", aggregation)
+        self.assertNotIn("Consensus: YES / NO", command)
+
+    def test_credit_fallback_uses_complete_model_and_matching_bands(self) -> None:
+        text = read(COMMANDS / "credit.md")
+        self.assertIn("Z' = 0.717×X1 + 0.847×X2 + 3.107×X3 + 0.420×X4 + 0.998×X5", text)
+        self.assertIn("X4 = Book Equity / Total Liabilities", text)
+        self.assertIn("Z' > 2.90", text)
+        self.assertIn("Z' < 1.23", text)
+        self.assertIn("boundaries inclusive", text)
+        self.assertIn("model applicability not established", text)
+        self.assertIn("Exclude an unavailable metric", text)
+        self.assertIn("Z' uses 1.23/2.90", text)
+        self.assertNotIn("substitute book equity for X4", text)
+
     def test_concierge_specific_routes_precede_generic_ticker_handling(self) -> None:
         text = read(COMMANDS / "start.md")
         loss = text.index("Holdings plus a loss statement")

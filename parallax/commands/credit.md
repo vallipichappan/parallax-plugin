@@ -62,9 +62,23 @@ Thresholds:
   Z < 1.81   → Distress Zone (high distress probability)
 ```
 
-If market cap is unavailable, substitute book equity for X4 (the **Z' variant**) and state the substitution in the output.
+**Applicability gate:** the Z and Z' models here are manufacturing models. For non-manufacturers, financial firms, or an unknown industry, render "Altman unavailable — model applicability not established" and continue with the other credit metrics. Do not invent industry-adjusted bands.
 
-Altman thresholds are generic — they shift by industry (manufacturing vs retail vs financial). Note the caveat when the issuer's sector makes it material.
+If market cap is unavailable for a manufacturer, retain the book-equity fallback using the complete **Z' model**:
+
+```
+Z' = 0.717×X1 + 0.847×X2 + 3.107×X3 + 0.420×X4 + 0.998×X5
+X4 = Book Equity / Total Liabilities
+X1, X2, X3 and X5 retain their definitions above.
+
+Z' > 2.90 → Safe Zone
+1.23–2.90 → Grey Zone (boundaries inclusive)
+Z' < 1.23 → Distress Zone
+```
+
+Label this "Z' book-equity fallback — private-manufacturer calibration applied as a proxy to a public manufacturer with missing market cap." Never mix Z coefficients or bands with Z'. Source: [Altman, Revisiting Credit Scoring Models, section 6](https://web-docs.stern.nyu.edu/salomon/docs/creditdebtmarkets/S-CDM-02-06.pdf).
+
+For either model, require all inputs, consistent reporting periods and currency, and positive total assets and total liabilities. Missing inputs or invalid denominators mean "Altman unavailable"; never substitute zero. Exclude an unavailable metric from the traffic-light vote, disclose reduced coverage, and render "Overall unavailable" if no metrics can be evaluated.
 
 ## Flagging Logic
 
@@ -83,7 +97,7 @@ Also apply absolute credit thresholds. **Use the more conservative of peer-relat
 | Debt/EBITDA | > 3.5x | > 5.0x |
 | Interest Coverage | < 3.0x | < 1.5x |
 | Current Ratio | < 1.2x | < 1.0x |
-| Altman Z | Grey Zone (1.81–2.99) | Distress Zone (< 1.81) |
+| Altman (selected model) | Z: 1.81–2.99; Z': 1.23–2.90 | Z: < 1.81; Z': < 1.23 |
 | Quality Score Change (52w, 0-10 scale) | change ≤ -0.5 pts | change ≤ -1.5 pts |
 
 Quality-score deterioration is a **primary** credit early-warning signal — a change of −1.5 pts or worse (0-10 scale) is RED even when every other metric looks healthy. The comparison is inclusive at the boundary, matching the upstream implementation. Use the table's figures; this line restates them, it does not set a second threshold.
@@ -102,7 +116,7 @@ Overall light is the majority color across flagged metrics. **If two or more col
 
 **2. Metrics Dashboard** — table: Category | Signal | Metric Value | Peer Median | Interpretation. One row each for Leverage, Coverage, Liquidity, Profitability, Altman Z, Quality Trend.
 
-**2a. Verdict sensitivity** (one line) — state the Altman Z's nearest band boundary (2.99 Safe/Grey or 1.81 Grey/Distress) and the arithmetic flip condition. Example: "Altman Z = 2.85 sits in the Grey Zone, 0.14 below the 2.99 Safe threshold; a rise above 2.99 moves this leg to Safe." **Scope: the Altman band only** — the header traffic light is a multi-metric majority vote, not a single published numeric cutoff, and is out of scope for this line.
+**2a. Verdict sensitivity** (one line) — identify the selected model and its nearest boundary: Z uses 1.81/2.99; Z' uses 1.23/2.90. State the arithmetic flip condition using only that model's bands. Omit arithmetic when Altman is unavailable and repeat the reason instead. Scope is the Altman band only; the overall traffic light is a multi-metric vote.
 
 **3. Solvency Assessment** (narrative) — from `get_financial_analysis`, including accruals quality. High accruals (earnings not backed by cash) are a red flag independent of traditional credit metrics. If unavailable: `[Solvency assessment unavailable]`.
 
