@@ -76,7 +76,7 @@ Z' > 2.90 → Safe Zone
 Z' < 1.23 → Distress Zone
 ```
 
-Label this "Z' book-equity fallback — private-manufacturer calibration applied as a proxy to a public manufacturer with missing market cap." Never mix Z coefficients or bands with Z'. Source: [Altman, Revisiting Credit Scoring Models, section 6](https://web-docs.stern.nyu.edu/salomon/docs/creditdebtmarkets/S-CDM-02-06.pdf).
+Label this "Z' book-equity fallback — private-manufacturer calibration applied as a proxy to a public manufacturer with missing market cap." Never mix Z coefficients or bands with Z'. Formula and X4 definition: [Altman, Revisiting Credit Scoring Models, section 6](https://web-docs.stern.nyu.edu/salomon/docs/creditdebtmarkets/S-CDM-02-06.pdf). Zone bounds: Altman, *Corporate Financial Distress* (Wiley, 1983), restated in Altman and Hotchkiss, *Corporate Financial Distress and Bankruptcy*, 3rd ed. (Wiley, 2006).
 
 For either model, require all inputs, consistent reporting periods and currency, and positive total assets and total liabilities. Missing inputs or invalid denominators mean "Altman unavailable"; never substitute zero. Exclude an unavailable metric from the traffic-light vote, disclose reduced coverage, and render "Overall unavailable" if no metrics can be evaluated.
 

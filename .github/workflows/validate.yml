@@ -34,7 +34,13 @@ jobs:
           SCAN_TIP: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           echo "Partial perimeter scan: private canary terms were not supplied by CI." >> "$GITHUB_STEP_SUMMARY"
-          python3 scripts/perimeter-scan.py --range "$SCAN_BASE..$SCAN_TIP"
+          # A branch-creation push has no prior commit; scan the pushed tree instead.
+          if [ -z "${SCAN_BASE//0/}" ]; then
+            echo "No base commit (branch creation): scanning the tip tree only." >> "$GITHUB_STEP_SUMMARY"
+            python3 scripts/perimeter-scan.py --source head
+          else
+            python3 scripts/perimeter-scan.py --range "$SCAN_BASE..$SCAN_TIP"
+          fi
 
       - name: Validate Claude plugin
         run: |
