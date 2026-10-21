@@ -167,6 +167,10 @@ run the Magic Formula screen
 margin of safety check on Tesla
 ```
 
+## Where your data goes
+
+Each Parallax command sends the tool arguments Claude builds to Chicago Global's Parallax server at `https://mcp.chicago.global/api/mcp`. Those arguments include tickers, company names, portfolio holdings and weights, and query text. Requests are authenticated with your Parallax API key. Claude stores the key with the plugin's settings. Tool results return to Claude and are processed under your Claude account's terms. This plugin has no server of its own and stores nothing else. For how Chicago Global handles this data, see the [Chicago Global privacy policy](https://chicago.global/privacy-policy/).
+
 ## Permissions
 
 Claude asks permission the first time it calls a Parallax tool. To stop the prompts, follow optional step 4 of manual install: run `/permissions` inside Claude and allow the Parallax server tools, or use the scripted alternative in that step.
