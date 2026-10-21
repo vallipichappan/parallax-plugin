@@ -119,10 +119,13 @@ def range_content(repo: Path, revision_range: str) -> tuple[dict[str, str], dict
                  for p in endpoints]
     if git(repo, "rev-parse", "--is-shallow-repository").strip() == b"true":
         raise ValueError("range scanning requires full history; fetch unshallow first")
-    # A reversed or unrelated pair yields an empty rev-list, which would read as clean.
-    if subprocess.run(["git", "-C", str(repo), "merge-base", "--is-ancestor", base, tip]).returncode != 0:
-        raise ValueError("--range BASE must be an ancestor of TIP")
     commits = git(repo, "rev-list", f"{base}..{tip}").decode().splitlines()
+    # A reversed pair yields an empty rev-list, which would read as clean. A diverged
+    # branch (base moved on) is fine: its own commits are still listed.
+    if not commits and subprocess.run(
+        ["git", "-C", str(repo), "merge-base", "--is-ancestor", base, tip]
+    ).returncode != 0:
+        raise ValueError("--range is empty because BASE is not an ancestor of TIP")
     blobs: dict[str, str] = {}
     texts: dict[str, str] = {}
     paths: dict[str, str] = {}

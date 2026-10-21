@@ -61,6 +61,20 @@ class PerimeterScanTests(unittest.TestCase):
         result = self.scan("--range", f"HEAD..{base}")
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
 
+    def test_diverged_range_scans_branch_commits(self) -> None:
+        fork = self.git("rev-parse", "HEAD").stdout.strip()
+        self.write("README.md", "base moved on\n")
+        self.git("add", "-A")
+        self.git("commit", "--quiet", "-m", "base update")
+        base = self.git("rev-parse", "HEAD").stdout.strip()
+        self.git("checkout", "--quiet", "-b", "side", fork)
+        self.write("README.md", MARKER + "\n")
+        self.git("add", "-A")
+        self.git("commit", "--quiet", "-m", "side change")
+        result = self.scan("--range", f"{base}..HEAD")
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("local canary hit", result.stdout)
+
     def test_range_scans_commit_messages(self) -> None:
         base = self.git("rev-parse", "HEAD").stdout.strip()
         self.git("commit", "--allow-empty", "--quiet", "-m", MARKER)
