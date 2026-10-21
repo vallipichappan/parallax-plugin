@@ -53,6 +53,14 @@ class PerimeterScanTests(unittest.TestCase):
             result = self.scan("--range", value)
             self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
 
+    def test_reversed_range_fails_closed(self) -> None:
+        base = self.git("rev-parse", "HEAD").stdout.strip()
+        self.write("README.md", "another safe version\n")
+        self.git("add", "-A")
+        self.git("commit", "--quiet", "-m", "safe update")
+        result = self.scan("--range", f"HEAD..{base}")
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+
     def test_range_scans_commit_messages(self) -> None:
         base = self.git("rev-parse", "HEAD").stdout.strip()
         self.git("commit", "--allow-empty", "--quiet", "-m", MARKER)
