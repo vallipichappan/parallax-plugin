@@ -9,7 +9,7 @@ Reactive performance attribution — the "why am I down?" workflow. Parse holdin
 
 **Not this command:** proactive health check → `/parallax:portfolio`. Trade recommendations → `/parallax:rebalance`. Hypotheticals → `/parallax:scenario`. Single stock → `/parallax:stock`.
 
-Resolve every symbol with `search_stocks` first; fall back to the conventions skill suffix table. Never pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explicitly — the transport serializes them as strings and validation fails. Rely on server defaults and slice to the inferred window client-side.
+Resolve every symbol with `search_stocks` first; fall back to the conventions skill suffix table. Never pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explicitly — some MCP clients have sent them as strings, which fails validation. Rely on server defaults and slice to the inferred window client-side.
 
 ## Step 1 — Measure actual performance
 

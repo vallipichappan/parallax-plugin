@@ -9,7 +9,7 @@ Reads a publicly traded issuer as a creditor would: can it service its debt, and
 
 **Not this command:** portfolio credit concentration → `/parallax:scenario`. Equity fundamentals → `/parallax:deep-dive`. Private issuers are out of scope — this needs a public company with reported financials.
 
-Never pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explicitly — the transport serializes them as strings and validation fails. Rely on server defaults.
+Never pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explicitly — some MCP clients have sent them as strings, which fails validation. Rely on server defaults.
 
 ## Batch 0 — Resolve
 

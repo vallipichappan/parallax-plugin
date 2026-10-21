@@ -49,7 +49,7 @@ All three are free. Use them generously here — this is the one command where t
 
 Resolve the ticker, then run the Path A batch (including the cross-validation gate). Additionally:
 
-- `get_score_analysis` supplies the trajectory. Do **not** pass `weeks` explicitly — the transport serializes numeric params as strings and validation fails. Rely on the server default and read the window it returns.
+- `get_score_analysis` supplies the trajectory. Do **not** pass `weeks` explicitly — some MCP clients have sent numeric params as strings, which fails validation. Rely on the server default and read the window it returns.
 - `get_news_synthesis` for fundamental catalysts. Async — poll per the `async-jobs` skill, never retry, never block the rest of the output. If it expires, render the score trajectory with "Catalyst check pending — service temporarily unavailable" and continue.
 - `explain_methodology` for whichever factor moved most.
 

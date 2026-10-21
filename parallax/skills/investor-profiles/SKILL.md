@@ -50,7 +50,7 @@ No profile may render output on unverified data.
 
 ## MCP Parameter Warning
 
-Do NOT pass numeric parameters (`weeks`, `periods`) explicitly — the MCP transport serializes them as strings, causing validation errors. Rely on server defaults (52 weeks, 4 periods).
+Do NOT pass numeric parameters (`weeks`, `periods`) explicitly — some MCP clients have sent them as strings, which fails validation. Rely on server defaults (52 weeks, 4 periods).
 
 ## Output Template
 

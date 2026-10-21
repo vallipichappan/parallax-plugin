@@ -38,7 +38,7 @@ Only escalate to the user after `search_stocks` plus 2 failed suffix attempts.
 
 ## Tool Parameters
 
-Do **not** pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explicitly — the transport serializes them as strings and the server rejects them. Rely on server defaults (52 weeks, 4 periods). `macro_analyst` takes `market` (not `country`); `build_stock_universe` takes `query` (not `description`).
+Do **not** pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explicitly — some MCP clients have sent them as strings, which fails validation. Rely on server defaults (52 weeks, 4 periods). `macro_analyst` takes `market` (not `country`); `build_stock_universe` takes `query` (not `description`).
 
 ## First-Batch Schema Race
 

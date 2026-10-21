@@ -44,7 +44,7 @@ Three calls, 1 token each.
 
 Fire together:
 
-- `get_score_analysis` for the primary and both peers — three calls. Do **not** pass `weeks`; the transport serializes numeric params as strings and validation fails. Take the server-default window and state which window the response covers.
+- `get_score_analysis` for the primary and both peers — three calls. Do **not** pass `weeks`; some MCP clients have sent numeric params as strings, which fails validation. Take the server-default window and state which window the response covers.
 - Each **equity** leg → `export_price_series` with the RIC, `format="json"` (free). No explicit `days` — rely on the server default and slice client-side if a shorter window is wanted.
 - Each **ETF** leg → `etf_daily_price` with the plain ticker.
 
