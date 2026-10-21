@@ -9,3 +9,4 @@ __pycache__/
 # This is a public marketplace repo; keep these out of it.
 notes/
 audits/
+deferred-debt.md

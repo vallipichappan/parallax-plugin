@@ -54,7 +54,7 @@ If ambiguous with a ticker present → default to consensus. If no ticker and no
 
 Per the Buffett section of the investor-profiles skill — assess each documented tilt by direction and mark met/not met. Do not publish a cutoff for any factor.
 
-For any factor score notably high or low (top/bottom quartile), call `explain_methodology` (free) to include the Parallax definition.
+For any factor score that meets the parallax-scoring skill's proactive trigger, call `explain_methodology` (free) to include the Parallax definition.
 
 ### Verdict
 
@@ -82,7 +82,7 @@ Do not add `get_peer_snapshot` solely for pedagogy. The financial ranking alread
 
 ### Ticker-check Mode (single ticker)
 
-1. `get_company_info` to identify sector/industry.
+1. `get_company_info` and `get_peer_snapshot` in parallel. `get_company_info` gives sector/industry; run the cross-validation gate per the conventions skill and stop on mismatch.
 2. `build_stock_universe` with sector-based peer query (e.g., "US large-cap technology hardware" for AAPL).
 3. Cap the candidate set, pull ratios, rank per universe mode steps 3-4. If the universe omitted the target or the cap cut it, add the target to the ranked set and say so in the output.
 4. Check target ticker's combined rank.
@@ -146,7 +146,7 @@ Checklist table: Check | Observed | Peer comparator | Result. Report observed va
 
 ### Single-ticker Mode
 
-6. `get_company_info` on the ticker — retrieve sector/industry.
+6. `get_company_info` and `get_peer_snapshot` on the ticker in parallel — sector/industry, plus the cross-validation gate per the conventions skill. Stop on mismatch.
 7. For each theme, `build_stock_universe` with sector-scoped query.
 8. Run the dual-channel exposure check per the Soros section of the investor-profiles skill (Channel A has two sub-paths A1 + A2 — either sufficient; Channel B can be UNAVAILABLE).
 
@@ -182,7 +182,7 @@ Render "Consensus unavailable — requires server-side calibration." Follow the 
 
 ### Factor-Level Agreement (load-bearing)
 
-Per investor-profiles skill: surface the three buckets — shared signals (flagged by more than one profile), single-profile signals, and absence signals (collective blind spots). This section is pedagogically load-bearing — do not skip it.
+Per investor-profiles skill: surface the three buckets — shared signals (flagged by more than one matching or partial profile), single-profile signals, and absence signals (collective blind spots). This section is pedagogically load-bearing — do not skip it.
 
 ### Render
 
@@ -206,7 +206,7 @@ Full matches (M): <count>
 Consensus unavailable — requires server-side calibration
 
 ## Shared factor signal
-Flagged by more than one matching profile: <list>
+Flagged by more than one matching or partial profile: <list>
 Single-profile signals: <list>
 Collective blind spots: <list>
 

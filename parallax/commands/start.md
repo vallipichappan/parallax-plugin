@@ -32,11 +32,11 @@ Users are colleagues, not prospects — no sales energy. Never personalize the g
 
 Pick a branch, or just describe what you're trying to do.
 
-*Outputs are informational only — independently verify before any investment decision.*
+<§9.2 banner and routing disclaimer, per the Disclaimer section below>
 
 ---
 
-Then wait for input.
+Then wait for input. Once the user picks a route, the routed workflow renders its own §9.2 banner and §9.1 disclaimer as its terminal elements; do not repeat this command's Disclaimer section after them. A raw-tool answer, such as shortcut 7's direct comparison, follows the tool-selection skill's guardrail rule.
 
 ## 🔍 Stock branch
 
@@ -103,7 +103,7 @@ If the invocation already carries an obvious payload, skip the menu and route di
 4. Holdings with weights → `/parallax:portfolio`
 5. A single ticker → `/parallax:stock`
 6. A country name → `/parallax:macro`
-7. Two or more unweighted tickers → ask once whether the user wants a direct comparison, watchlist surveillance, or investor-profile consensus. Direct comparison uses `export_peer_comparison`; watchlist uses `/parallax:rebalance`; consensus uses `/parallax:investor`.
+7. Two or more unweighted tickers → ask once whether the user wants a direct comparison, watchlist surveillance, or investor-profile consensus. Direct comparison uses `get_company_info` + `get_peer_snapshot` per ticker with the cross-validation gate, per the tool-selection skill; watchlist uses `/parallax:rebalance`; consensus uses `/parallax:investor`.
 
 When ambiguous, name the likely command and confirm while running: *"Sounds like `/parallax:portfolio` — dropping in now."*
 

@@ -57,7 +57,8 @@ Render the AI-interaction disclosure per the conventions skill §9.2, then end w
 
 | Tool | Parameters | Notes |
 |---|---|---|
-| `get_score_analysis` | `symbol` | Quality score trajectory (server-default 52-week window) |
+| `get_company_info` | `symbol` | Ground-truth identity |
+| `get_score_analysis` | `symbol` | Quality score trajectory (server-default 52-week window). Verify `data[0].symbol` against the requested RIC per the conventions skill; on mismatch refuse the verdict |
 | `get_financials` | `symbol`, statement="income" | Revenue/margin trends (server-default periods) |
 | `get_financials` | `symbol`, statement="cash_flow" | Cash conversion |
 | `get_financials` | `symbol`, statement="ratios" | Accrual ratios |

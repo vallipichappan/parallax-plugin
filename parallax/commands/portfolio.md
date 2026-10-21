@@ -59,7 +59,9 @@ Select up to 8 holdings per health-flags drill-down rules (flag count desc, weig
 |---|---|---|
 | `get_score_analysis` | `symbol` | Score trend (server-default window) |
 | `get_stock_outlook` | `symbol`, aspect="risk_return" | Risk vs peers |
-| `get_peer_snapshot` | `symbol` | Current scores |
+| `get_peer_snapshot` | `symbol` | Current scores. Cross-validate per the conventions skill; on mismatch move the holding to ⚠ MISMATCH |
+
+If drill-down adds a ⚠ MISMATCH holding, re-run the Batch C flag evaluation and health status before rendering.
 
 News: `get_news_synthesis` for holdings >10% weight AND flagged, cap 5. Async — never blocks.
 

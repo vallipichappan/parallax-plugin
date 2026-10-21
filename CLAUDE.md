@@ -31,9 +31,9 @@ Installation for end users: `claude plugin marketplace add vallipichappan/parall
 The plugin's intelligence lives in the **interplay between commands and skills**, not in code.
 
 - **Commands** (`parallax/commands/*.md`) are user-facing slash commands. Each one defines a workflow (tool batch, parallelism, output shape) but delegates *rules* to skills.
-- **Skills** (`parallax/skills/*.md`) are non-user-facing reference documents that commands point to. They carry the cross-cutting behavior — RIC resolution, fallback policy, factor thresholds, health-flag math, token-cost routing, async polling patterns, investor-profile specs.
+- **Skills** (`parallax/skills/<name>/SKILL.md`) are non-user-facing reference documents that commands point to. They carry the cross-cutting behavior — RIC resolution, fallback policy, factor thresholds, health-flag math, token-cost routing, async polling patterns, investor-profile specs.
 
-A command like `stock.md` will say "apply cross-validation per conventions skill" or "apply threshold per parallax-scoring skill" — so **the skill is the spec, the command is the pipeline**. When editing behavior that spans multiple commands (disclaimer text, fallback rules, RIC suffixes, verdict math), edit the skill, not the commands.
+A command like `stock.md` will say "apply cross-validation per conventions skill" and `why-score.md` will say "apply threshold per parallax-scoring skill" — so **the skill is the spec, the command is the pipeline**. When editing behavior that spans multiple commands (disclaimer text, fallback rules, RIC suffixes, verdict math), edit the skill, not the commands.
 
 ### Load-bearing skills
 
@@ -66,7 +66,7 @@ A command like `stock.md` will say "apply cross-validation per conventions skill
 - **Adding a command:** create `parallax/commands/<name>.md` with frontmatter (`description`, `argument-hint`). Reference the existing skills rather than restating their rules. Update `README.md` command table and `parallax/skills/tool-selection/SKILL.md`. Bump `parallax/.claude-plugin/plugin.json` version.
 - **Adding a skill:** create `parallax/skills/<name>/SKILL.md` with frontmatter (`name`, `description`) — the subdirectory layout is mandatory; flat `skills/*.md` files are never discovered by the plugin loader. Reference it from the commands that need it.
 - **Changing thresholds** (e.g., health-flag cutoffs, AAOIFI screen ratios): update the skill spec that owns them, then re-verify against the anchor tickers named in that section. Investor-profile cutoffs are out of scope here — see the calibration invariant above.
-- **Token-cost changes:** update `token-costs.md` table *and* the workflow cost estimates at the bottom, *and* per-command mentions if any.
+- **Token-cost changes:** update the `token-costs` skill table *and* the workflow cost estimates at the bottom, *and* per-command mentions if any.
 
 ### Porting from `parallax-workflows`
 

@@ -113,7 +113,7 @@ This output is an AI-inferred synthesis produced by the Parallax AI Investor Pro
 Report the target's observed rank and percentile. Exclude financials and utilities by default. EY computed as 1/enterprise_value_ebit.
 
 **Tool sequence (universe):** `build_stock_universe` (5), `get_financials` (ratios) per candidate (1 each — this dominates). ~35-40 tokens. Do not add `get_peer_snapshot` solely for pedagogy; it does not affect the Magic Formula ranking.
-**Tool sequence (ticker-check):** `get_company_info`, `build_stock_universe` (5), `get_financials` (ratios) per candidate (1 each). ~35-40 tokens.
+**Tool sequence (ticker-check):** `get_company_info` + `get_peer_snapshot` (cross-validation gate), `build_stock_universe` (5), `get_financials` (ratios) per candidate (1 each). ~36-41 tokens.
 
 ---
 
@@ -168,7 +168,7 @@ Same macro workflow (steps 1-4), then a dual-channel exposure check:
 **Verdict:** both channels flagged → `match`; one flagged → `partial_match`; neither → `no_match`. **`match` is NEVER reached when Channel B is UNAVAILABLE** — maximum is `partial_match`. These are discrete channels, so per the Verdict Sensitivity Guard there is no flip point to describe.
 
 **Tool sequence (basket):** `list_macro_countries`, `macro_analyst` per market, `get_telemetry`, `build_stock_universe` per theme, `get_peer_snapshot`, `get_company_info`. ~28-72 tokens.
-**Tool sequence (single-ticker):** Same macro and telemetry steps, one targeted `get_company_info` check in place of the basket's per-theme leader snapshots, and `build_stock_universe` per theme for Channel A1. ~23-43 tokens.
+**Tool sequence (single-ticker):** Same macro and telemetry steps, one targeted `get_company_info` + `get_peer_snapshot` cross-validation gate in place of the basket's per-theme leader snapshots, and `build_stock_universe` per theme for Channel A1. ~24-44 tokens.
 
 ---
 
@@ -200,4 +200,4 @@ Cross-profile agreement IS the high-conviction signal. This section is pedagogic
 
 ### Token Cost
 
-Single-ticker consensus: ~67-94 tokens (Buffett ~4 + Greenblatt ~35-40 + Klarman ~5-7 + Soros ~23-43). Basket of 5: ~250-330 tokens (Soros macro runs once; per-ticker exposure check repeats; the Greenblatt universe pull may amortize across tickers, so treat the range as an upper bound). This is the most expensive operation in the plugin — the `token-costs` skill is canonical and these figures must agree with it.
+Consensus is the most expensive operation in the plugin. See the `token-costs` skill for its cost; that skill is canonical.

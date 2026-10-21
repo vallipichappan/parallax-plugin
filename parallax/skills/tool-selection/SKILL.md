@@ -28,12 +28,12 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "Price history / performance" | `export_price_series` (stocks, free) or `etf_daily_price` (ETFs) — route per asset-class-routing skill |
 | "Full research report PDF" | `get_stock_report` (~2 min) |
 | "Deep dive on [stock]" | `/parallax:deep-dive` |
-| "What's the market doing today?" | `get_telemetry` (~15-30s) |
+| "What's the market doing today?" | `get_telemetry` |
 | "How does scoring work?" | `explain_methodology` |
 | "Is [stock] halal / Shariah compliant?" | `/parallax:screen` (halal mode) |
 | "Check earnings quality of [stock]" | `/parallax:screen` (quality mode) |
 | "Forensic analysis of [stock]" | `/parallax:screen` (quality mode) |
-| "Compare [stock A] vs [stock B]" | `export_peer_comparison` (one call, cross-sectionally comparable scores) |
+| "Compare [stock A] vs [stock B]" | `get_company_info` + `get_peer_snapshot` per stock, cross-validated per the conventions skill, shown side by side on the sector-relative 0-10 scale. If A and B are in different sectors, say so and do not rank one above the other on raw score. `export_peer_comparison` covers one symbol's peer set, so it compares A with B only when B is already one of A's peers |
 | "How does [stock] compare to its peers?" | `/parallax:peers` |
 | "Who are [stock]'s competitors / peer group?" | `/parallax:peers` |
 | "Why does [stock] score that way?" | `/parallax:why-score` |
@@ -66,6 +66,8 @@ description: Reference for which Parallax MCP tool or command to call for any in
 Note `/parallax:explain` is drawdown attribution, not score methodology — score explanations are `/parallax:why-score`. `explain_methodology` is the raw tool behind the latter; prefer the command when the user wants an explanation rather than a definition.
 
 Three routes touch "ideas": `/parallax:universe` turns a user theme into a weighted portfolio; `/parallax:thematic-screen` turns a user theme into an unweighted ranked idea list; `/parallax:investor` (soros basket mode) derives ideas from the macro regime with no user theme supplied. A bare "screen for [theme]" routes to `/parallax:screen` (halal/quality) when it names a compliance or forensic filter (halal, Shariah, quality, forensic, accruals); otherwise treat it as "thematic ideas for [theme]" and route to `/parallax:thematic-screen`.
+
+**Raw-tool answers keep the guardrails.** Any answer built from a raw tool rather than a slash command still renders the §9.2 banner and §9.1 disclaimer per the conventions skill. If the answer uses `get_peer_snapshot`, also call `get_company_info` and run the cross-validation gate before rendering scores.
 
 Default for any ambiguous stock question: `get_peer_snapshot`.
 Default for any investor/legend/Buffett/Greenblatt/Klarman/Soros/Magic Formula/margin-of-safety question: `/parallax:investor`.

@@ -129,7 +129,7 @@ For single-stock or portfolio analysis, determine relevant markets from RIC suff
 3. Call `macro_analyst` with component="tactical" per market.
 4. Cap at 3 markets (single stock or portfolio).
 
-If `list_macro_countries` fails, derive from RIC suffixes: `.O`/`.N`/`.K` = US, `.T` = Japan, `.L` = UK, `.DE` = Germany, `.SI` = Singapore. `.HK` gets no market, per the uncovered list below.
+If `list_macro_countries` fails, derive the market from the RIC suffix using the table below. In this fallback the live verbatim match is unavailable, so use the mapped name directly.
 
 ### RIC Suffix → Covered Macro Market
 
@@ -148,7 +148,7 @@ For workflows that derive markets from a candidate set rather than a single home
 
 `.HK`, `.AX`, `.OL` have no currently-covered macro market. A candidate on one of these exchanges gets no market tag — never substitute a nearby market (e.g. China for Hong Kong).
 
-**Every suffix named anywhere in this skill appears in exactly one of the two groups above — mapped, or explicitly uncovered.** A suffix that appears in the RIC Resolution table or the fallback line but in neither group here is a drift bug: it makes a candidate on that exchange silently lose its market tag. `.SI` and `.K` were in that state until 2026-08-20.
+**Every suffix named anywhere in this skill appears in exactly one of the two groups above — mapped, or explicitly uncovered.** A suffix that appears in the RIC Resolution table but in neither group here is a drift bug: it makes a candidate on that exchange silently lose its market tag. `.SI` and `.K` were in that state until 2026-08-20.
 
 ## Render Discipline
 

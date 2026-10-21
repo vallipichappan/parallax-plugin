@@ -56,7 +56,7 @@ After Batch A completes, render one summary line: "N/M holdings scored; sections
    - **Reweight:** concentration flag only
    - **Investigate:** 1-2 flags, none of them concentration → suggest `/parallax:deep-dive`
    - **Hold:** no flags (priority None)
-4. For Trim and Exit candidates: `build_stock_universe` with portfolio factor profile theme → `get_peer_snapshot` for replacement candidates. Drop any candidate whose returned name fails the cross-validation check against `get_company_info` — never propose a replacement from a mismatched mapping.
+4. For Trim and Exit candidates: `build_stock_universe` with portfolio factor profile theme → `get_company_info` and `get_peer_snapshot` in parallel for each replacement candidate. Drop any candidate whose returned name fails the cross-validation check against `get_company_info` — never propose a replacement from a mismatched mapping.
 
 **Atomic sizing gate:** if any holding needed for sizing lacks a verified identity, score, weight, or required allocation input, do not render proposed weights or the before/after comparison. Name each failed component and offer the operator a choice to correct or remove it. A partial research summary may still render.
 

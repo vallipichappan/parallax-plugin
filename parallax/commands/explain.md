@@ -48,8 +48,10 @@ Never silently zero or skip a holding. Compare the computed return against the u
 |---|---|---|
 | `get_telemetry` | fields: regime_tag, signals, commentary.headline, commentary.mechanism, divergences | Is the whole market down? |
 | `list_macro_countries` | — | Coverage for home markets |
-| `get_peer_snapshot` | per holding | Primary scoring source; aggregate client-side |
-| `get_company_info` | per holding | Ground-truth name oracle |
+| `get_peer_snapshot` | per equity holding | Primary scoring source; aggregate client-side |
+| `get_company_info` | per equity holding | Ground-truth name oracle |
+
+Factor scores are equity-only. ETF legs classified in Step 1a get price attribution only: never call `get_peer_snapshot`, `get_company_info` or `get_score_analysis` for them, and never list them as ⚠ MISMATCH.
 
 **Cross-validation (non-bypassable).** After `get_peer_snapshot`, compare the top-level `target_company` against `get_company_info.data.name` — peer rows carry their own `name` and refer to each peer, not the target. On mismatch: exclude that holding from all aggregates, mark it ⚠ MISMATCH in the attribution table, and never render its scores.
 
@@ -57,11 +59,11 @@ Then call `macro_analyst` with component="tactical" per home market (cap 3). Thi
 
 ## Step 3 — Layer 2: Factor and thematic
 
-Call `get_score_analysis` per holding in parallel (no explicit `weeks` — server default). This is the primary factor source. Determine: which factor scores moved most; whether the moves are correlated across holdings (correlated → systematic/thematic, uncorrelated → stock-specific); whether the portfolio is tilted into a factor that is out of favor for the current regime. Cross-reference `get_telemetry` divergences against the portfolio's exposure.
+Call `get_score_analysis` per equity holding in parallel (no explicit `weeks` — server default). This is the primary factor source. Determine: which factor scores moved most; whether the moves are correlated across holdings (correlated → systematic/thematic, uncorrelated → stock-specific); whether the portfolio is tilted into a factor that is out of favor for the current regime. Cross-reference `get_telemetry` divergences against the portfolio's exposure.
 
 ## Step 4 — Layer 3: Stock-specific
 
-For the **top 3 detractors** by weighted contribution, call `get_news_synthesis` in parallel. Reuse the cross-validated `get_peer_snapshot` results from Step 2.
+For the **top 3 equity detractors** by weighted contribution, call `get_news_synthesis` in parallel. Reuse the cross-validated `get_peer_snapshot` results from Step 2. An ETF detractor gets no news call; list it in Top Detractors with its price attribution only.
 
 `get_news_synthesis` is async — never retry it, poll `check_job_status` per the async-jobs skill, and never let it block the rest of the output. Overlap it with the macro reasoning and the price/score computations, and assemble those sections immediately. On wait-cap expiry, render "Analysis pending — service temporarily unavailable" inside Top Detractors.
 
@@ -80,8 +82,10 @@ Each row below is an analytical classification from threshold results. It is not
 | Down | Stable/Up | **Transient** — market mispricing, fundamentals intact | No deterioration flag |
 | Down | Down | **Fundamental** — deterioration confirmed by scores | Flagged for full-position review |
 | Down | Mixed | **Ambiguous** — some factors deteriorating, others stable | Flagged for further review |
+| Down | n/a (ETF leg or ⚠ MISMATCH) | **Unclassified** — price attribution only | Excluded from the verdict; state the excluded weight next to the verdict |
+| Flat/Up | any | **Not a detractor** — did not contribute to the loss | Excluded from the verdict |
 
-Portfolio-level verdict: majority of weighted holdings "Transient" → the drawdown is likely noise. Majority "Fundamental" → it reflects real deterioration.
+Portfolio-level verdict, computed over detractors only: majority of weighted detractors "Transient" → the drawdown is likely noise. Majority "Fundamental" → it reflects real deterioration.
 
 ## Step 6 — Classification context
 

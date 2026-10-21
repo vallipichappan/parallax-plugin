@@ -24,7 +24,7 @@ description: Per-tool token costs and cost-optimal routing rules for Parallax co
 3. **`get_assessment` is 10 tokens:** Call once per workflow after all data is assembled, not incrementally.
 4. **Free tools:** `explain_methodology` and `search_stocks` cost nothing — use liberally for score explanations and symbol resolution.
 5. **`macro_analyst` summary vs components:** A single call without `component` returns all 9 components inline (5 tokens). Per-component calls return identical content at 5 tokens each. Use summary mode for full macro analysis (`/parallax:macro`). Use component="tactical" when you only need the tactical slice (stock, portfolio, rebalance, scenario commands) — this returns the same content but signals intent.
-6. **Investor profiles vary ~50x in cost:** Buffett is 4 tokens; consensus on a 5-ticker basket runs 250+. When a user asks "what do the legends think about AAPL?" (consensus single-ticker), warn that this is ~67-94 tokens. Consensus basket-of-5 is the most expensive operation in the plugin.
+6. **Investor profiles vary ~50x in cost:** Buffett is 4 tokens; consensus on a 5-ticker basket runs 250+. When a user asks "what do the legends think about AAPL?" (consensus single-ticker), warn that this is ~69-96 tokens. Consensus basket-of-5 is the most expensive operation in the plugin.
 
 ## Workflow Cost Estimates
 
@@ -36,24 +36,24 @@ Estimates assume no cache hits and `export_price_series` at 0 tokens.
 | `/parallax:portfolio` (checkup) | ~36 |
 | `/parallax:portfolio` (advisor mode) | ~105 |
 | `/parallax:deep-dive` | ~45 |
-| `/parallax:explain` | ~45-50 for a 5-holding book (3/holding + macro + news for top 3 detractors + one `etf_profile` probe per holding) |
+| `/parallax:explain` | ~45-50 for a 5-holding book (3 per equity holding + macro + news for top 3 detractors + one `etf_profile` probe per holding; ETF legs get no scoring calls) |
 | `/parallax:credit` | ~13-19 |
 | `/parallax:macro` | ~12 single market (+5 per additional market, +18 with equity opportunities) |
 | `/parallax:universe` | ~46 with 10 cross-validated candidates |
 | `/parallax:thematic-screen` | ~36 at 5 picks with 3 macro markets (~46 at 10 picks) |
 | `/parallax:etf` | ~2 single ETF (profile + holdings); ~2 per ticker for a compare (profile + holdings, since compare includes overlap); ~1 per ticker for an overlap-only request; ~6 for a theme search (search + 5 profiles); +1 per `etf_daily_price` call |
 | `/parallax:screen` (halal) | ~8 |
-| `/parallax:screen` (quality) | ~24 |
+| `/parallax:screen` (quality) | ~25 |
 | `/parallax:scenario` | ~68 |
-| `/parallax:rebalance` | ~76 |
+| `/parallax:rebalance` | ~76, plus 1 per replacement candidate for the name check |
 | `/parallax:peers` | ~9 (snapshot + company info + comparison export + three score histories + three `etf_profile` probes; +1 per ETF leg priced through `etf_daily_price`) |
 | `/parallax:why-score` | ~3 for "why does X score this way"; 0 for a concept question (free tools only); ~8 for "why did it change" (adds one async news synthesis) |
 | `/parallax:start` | 0 for the menu itself; then the cost of the workflow it routes to |
 | `/parallax:investor` (buffett) | ~4 |
-| `/parallax:investor` (greenblatt ticker-check) | ~35-40 (dominated by the per-candidate `get_financials` ratios pull; scales linearly with the candidate cap) |
+| `/parallax:investor` (greenblatt ticker-check) | ~36-41 (dominated by the per-candidate `get_financials` ratios pull; scales linearly with the candidate cap) |
 | `/parallax:investor` (greenblatt universe) | ~35-40 |
 | `/parallax:investor` (klarman) | ~5-7 |
-| `/parallax:investor` (soros single-ticker) | ~23-43 |
+| `/parallax:investor` (soros single-ticker) | ~24-44 |
 | `/parallax:investor` (soros basket) | ~28-72 |
-| `/parallax:investor` (consensus single) | ~67-94 |
-| `/parallax:investor` (consensus basket-5) | ~250-330 (Greenblatt universe pull may amortize across tickers; treat as upper bound) |
+| `/parallax:investor` (consensus single) | ~69-96 |
+| `/parallax:investor` (consensus basket-5) | ~260-340 (Greenblatt universe pull may amortize across tickers; treat as upper bound) |
