@@ -17,21 +17,23 @@ Resolve symbols via `search_stocks` (free) per the conventions skill.
 
 ## Halal Mode
 
-### MSCI-Style Total-Assets Screen
+### Total-Assets Ratio Screen
 
 | Ratio | Threshold | Pass condition |
 |---|---|---|
 | Total debt / Total assets | ≤ 33.33% | Low leverage |
-| (Cash + interest-bearing securities) / Total assets | ≤ 33.33% | Limited interest exposure |
-| (Interest income + non-permissible revenue) / Total revenue | ≤ 5% | Negligible haram income |
+| Cash and short-term investments / Total assets | ≤ 33.33% | Limited interest exposure |
+| Interest-and-investment income / Total revenue | ≤ 5% | Negligible interest income |
 
-These ratios follow the MSCI Islamic Index Series, which uses total assets as the denominator ([methodology, Oct 2024](https://www.msci.com/indexes/documents/methodology/2_MSCI_Islamic_Index_Series_Methodology_20241030.pdf)). This is not an AAOIFI SS 21 screen, which uses 30% of market capitalization, or a Dow Jones Islamic Market screen, which uses 33% of 24-month average market capitalization. Never describe a result as AAOIFI- or DJIM-compliant. If the user asks for either standard, say this screen uses the MSCI method.
+These ratios and cutoffs are this screen's own fixed values. They are commonly used screening ratios, not a claim of conformance to any named standard. Published Shariah screens differ on the denominator, the cutoffs, and the set of ratios; one published example is the [MSCI Islamic Index Series methodology (Oct 2024)](https://www.msci.com/indexes/documents/methodology/2_MSCI_Islamic_Index_Series_Methodology_20241030.pdf). This screen is not affiliated with or endorsed by any index provider or standards body, and its result is not interchangeable with theirs. Never describe a result as compliant with a named standard such as AAOIFI, DJIM, or MSCI. If the user asks for a named standard, state the ratios, denominators and cutoffs used here, and say this is not that standard.
+
+Ratio 3's numerator is interest-and-investment income from `get_financials` (statement="income"). Parallax has no field for revenue from prohibited business activities, so Ratio 3 and the purification ratio are narrower than a standard that also counts that revenue. Say so in the Key Ratios output.
 
 ### Single Stock Workflow
 
 1. `get_company_info` — check sector against prohibited industries (conventional banking/insurance, alcohol, tobacco, gambling, pork, weapons, adult entertainment). **Short-circuit:** if the business-activity screen FAILs, mark non-compliant and skip the financial calls entirely — the ratios cannot cure a prohibited industry.
-2. If activity screen passes, in parallel: `get_financials` (statement="balance_sheet") + `get_financials` (statement="ratios"). Compute the 3 ratios above. **FAIL if any threshold breached.**
-3. If >0% but <5% non-permissible revenue: compute purification ratio (non-permissible / total income).
+2. If activity screen passes, in parallel: `get_financials` (statement="balance_sheet") + `get_financials` (statement="income"). Compute the 3 ratios above. Do not use statement="ratios": it carries no interest-income or revenue field (verified live 2026-10-22). **FAIL if any threshold breached.**
+3. If Ratio 3 is above 0% and at or below 5%: compute the purification ratio (interest-and-investment income / total revenue).
 4. Optional: `get_financial_analysis` for deeper profitability decomposition (async ~2-5 min — warn user, poll per async-jobs skill).
 5. `get_score_analysis` for quality trajectory. Note: `explain_methodology` does not cover shariah/halal concepts — do not route there.
 
@@ -43,9 +45,9 @@ These ratios follow the MSCI Islamic Index Series, which uses total assets as th
 
 ### Output
 
-- **Screening Criteria** — MSCI-style total-assets thresholds
+- **Screening Criteria** — total-assets thresholds (this screen's own values)
 - **Compliance Results** — table: symbol, compliant Y/N, reason if non-compliant
-- **Key Ratios** — debt/assets %, interest-bearing/assets %, non-permissible revenue %
+- **Key Ratios** — debt/assets %, cash and short-term investments/assets %, interest-and-investment income/revenue %, with the Ratio 3 scope note
 - **Purification Amount** — if applicable
 - **Alternatives** — scored compliant replacements. These come from `build_stock_universe`, which is not reproducible run-to-run; say the alternatives are a point-in-time sample, per the conventions skill's Universe Search Reproducibility section. Decide emptiness from the `companies` array alone, and when the response carries `degraded: true`, name the `relaxed` screens in a degraded-coverage note, per the same skill.
 

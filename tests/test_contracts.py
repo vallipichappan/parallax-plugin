@@ -294,6 +294,24 @@ class WorkflowContractTests(unittest.TestCase):
                     "cost row names a candidate count the profile spec redacts",
                 )
 
+    def test_halal_screen_claims_no_named_standard(self) -> None:
+        """The halal screen must not claim to follow a named index or standard.
+
+        Its ratio set and cutoffs differ from published methodologies, and
+        the server has no field for prohibited-activity revenue. A vendor
+        label also uses a third party's mark to describe this product.
+        """
+        screen = read(COMMANDS / "screen.md")
+        halal = section(screen, "## Halal Mode", "### Portfolio Mode")
+        positioning = read(ROOT / "docs" / "positioning.md")
+        for name, text in {"screen.md": screen, "positioning.md": positioning}.items():
+            with self.subTest(file=name):
+                self.assertNotRegex(text, r"(?i)\b(msci|aaoifi|djim)[- ]style")
+                self.assertNotRegex(text, r"(?i)ratios follow the")
+        self.assertIn("not a claim of conformance to any named standard", halal)
+        self.assertIn('statement="income"', halal)
+        self.assertNotIn('`get_financials` (statement="ratios")', halal)
+
     def test_greenblatt_costs_are_formulas_not_totals(self) -> None:
         """A numeric total lets a reader back-solve the redacted candidate count.
 
