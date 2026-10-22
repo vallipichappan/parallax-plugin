@@ -38,14 +38,14 @@ Per the `asset-class-routing` skill, call `etf_profile` on each leg, one symbol 
 - `{"error": "No profile data found", ...}` → **equity** → route through `export_price_series`
 - non-error profile → **ETF** → route through `etf_daily_price`
 
-Three calls, 1 token each.
+Three calls, 0.1 credits each.
 
 ## Step 4 — Trends and price series (parallel)
 
 Fire together:
 
-- `get_score_analysis` for the primary and both peers — three calls. Do **not** pass `weeks`; the transport serializes numeric params as strings and validation fails. Take the server-default window and state which window the response covers.
-- Each **equity** leg → `export_price_series` with the RIC, `format="json"` (free). No explicit `days` — rely on the server default and slice client-side if a shorter window is wanted.
+- `get_score_analysis` for the primary and both peers — three calls. Do **not** pass `weeks`; some MCP clients have sent numeric params as strings, which fails validation. Take the server-default window and state which window the response covers.
+- Each **equity** leg → `export_price_series` with the RIC, `format="json"` (0.05 credits). No explicit `days` — rely on the server default and slice client-side if a shorter window is wanted.
 - Each **ETF** leg → `etf_daily_price` with the plain ticker.
 
 **Halt-and-surface rule.** If a leg returns empty from both its classified endpoint and the fallback, exclude it from the price section and render:
@@ -66,9 +66,9 @@ Where a factor score is ≥8 or ≤3, call `explain_methodology` (free) and weav
 
 **Comparison is not ranking.** Report where the primary sits relative to peers; do not order the group into a preference list or label any name as the pick — see the conventions skill §12.
 
-## Token cost
+## Credit cost
 
-~9 tokens: peer snapshot (1) + `get_company_info` (1) + peer comparison export (1) + three score histories (3) + three `etf_profile` probes (3). `export_price_series` is free.
+~1.0 credit: peer snapshot (0.1) + `get_company_info` (0.05) + peer comparison export (0.1) + three score histories (0.3) + three `etf_profile` probes (0.3) + three price pulls through `export_price_series` or `etf_daily_price` (0.15).
 
 ## Render discipline
 

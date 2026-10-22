@@ -7,7 +7,7 @@ description: Five-flag portfolio health system, priority matrix, verdict sensiti
 
 ## The 5 Flags (portfolio level)
 
-These conditions are computed on portfolio-weighted aggregates. They are the canon for `/parallax:portfolio` checkup mode.
+These conditions are computed on portfolio-weighted aggregates. They are the canon for `/parallax:portfolio` checkup mode. If any holding is ⚠ MISMATCH, compute the Low Score and Value Trap aggregates client-side as a weighted average over scored equity holdings only, excluding ETF legs (they carry no factor score) and any ⚠ MISMATCH holding, weights renormalized. The server aggregate still includes the mismatched holding.
 
 | Flag | Condition | Source | Threshold |
 |---|---|---|---|
@@ -74,9 +74,9 @@ Every classification must cite a **specific flag or data finding**. No generic a
 |---|---|---|
 | `get_score_analysis` | server defaults | Trend — improving or deteriorating? |
 | `get_stock_outlook` | aspect="risk_return" | Risk profile vs peers |
-| `get_peer_snapshot` | — | Current scores + peer context |
+| `get_peer_snapshot` | — | Current scores + peer context. Cross-validate per the conventions skill; on mismatch move the holding to ⚠ MISMATCH |
 
-**News (selective):** Call `get_news_synthesis` only for holdings with weight >10% AND flagged, OR in a sector with active macro developments. Cap at 5. News is async — don't block.
+**News (selective):** Call `get_news_synthesis` only for holdings with weight >10% AND flagged, OR in a sector with active macro developments. Cap at 5. News is async: the server waits up to 150s; never re-call it, and render the async-jobs label if it returns no result.
 
 ## Scoring Fallback Ladder
 

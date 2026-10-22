@@ -5,7 +5,7 @@ description: How to interpret Parallax factor scores (0-10 per security) and exp
 
 # Parallax Scoring
 
-Five factors, each **0-10**, peer-relative within the stock's sector:
+Five factors, each **0-10**, computed as a percentile rank against other covered stocks in the investment universe, not within the stock's sector (`explain_methodology` "scoring"). For a peer- or sector-level comparison, use `get_peer_snapshot`.
 
 | Factor | Measures |
 |---|---|
@@ -17,7 +17,7 @@ Five factors, each **0-10**, peer-relative within the stock's sector:
 
 **Overall** = composite of the five factors. For the public methodology description, route users to `explain_methodology` (concept: "overall" or "factor_weighting") — do not characterize the composition beyond what it returns.
 
-**Scale note:** the authoritative per-security scale is 0-10 (all thresholds in this plugin — health flags, investor profiles — are 0-10 values). Some portfolio-aggregate surfaces render 0-100 (score × 10); if a payload is unambiguously 0-100, divide by 10 before applying any threshold.
+**Scale note:** the authoritative per-security scale is 0-10 (all thresholds in this plugin, such as health flags, are 0-10 values). Some portfolio-aggregate surfaces render 0-100 (score × 10); if a payload is unambiguously 0-100, divide by 10 before applying any threshold.
 
 **Ranges (0-10):** 7.5-10 strong / 6.0-7.4 constructive / 4.0-5.9 neutral / 2.5-3.9 cautious / 0-2.4 weak
 

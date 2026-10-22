@@ -9,13 +9,13 @@ Reads a publicly traded issuer as a creditor would: can it service its debt, and
 
 **Not this command:** portfolio credit concentration → `/parallax:scenario`. Equity fundamentals → `/parallax:deep-dive`. Private issuers are out of scope — this needs a public company with reported financials.
 
-Never pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explicitly — the transport serializes them as strings and validation fails. Rely on server defaults.
+Never pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explicitly — some MCP clients have sent them as strings, which fails validation. Rely on server defaults.
 
 ## Batch 0 — Resolve
 
 Resolve the symbol with `search_stocks` first; fall back to the conventions skill suffix table (plain `AAPL` → `AAPL.O`). Exchange suffix is load-bearing.
 
-## Batch A — Core financials (parallel, 6 tokens)
+## Batch A — Core financials (parallel, 0.35 credits)
 
 | Tool | Parameters | Extracts |
 |---|---|---|
@@ -30,17 +30,17 @@ Resolve the symbol with `search_stocks` first; fall back to the conventions skil
 
 Derive: **Leverage** (Debt/EBITDA, Debt/Equity, Debt/Assets vs peer medians) · **Coverage** (interest coverage, EBITDA/interest) · **Liquidity** (current ratio, quick ratio) · **Profitability** (EBITDA, EBIT, FCF margins).
 
-## Batch B — Solvency, trend, macro (launch with Batch A)
+## Batch B — Solvency, trend, macro (after the cross-validation gate)
 
-Batch B has no dependency on Batch A beyond symbol resolution. Launch both batches in the same tool-call turn.
+Batch B needs only the resolved symbol, but launch it after the Batch A cross-validation gate passes. On a mismatch, Batch B never fires, so the 5-credit `get_financial_analysis` job is not billed for a refused output.
 
 | Tool | Parameters | Purpose |
 |---|---|---|
-| `get_financial_analysis` | `symbol` | Solvency assessment — async, 2-5 min |
+| `get_financial_analysis` | `symbol` | Solvency assessment — async, up to ~5 min server-side |
 | `get_score_analysis` | `symbol` | Quality-score trajectory (52w server default) |
 | `get_telemetry` | fields: regime_tag, signals, commentary.headline, commentary.mechanism, divergences | Market regime; no symbol parameter |
 
-`get_financial_analysis` is async — never retry it, poll `check_job_status` per the async-jobs skill, and never let it block the rest of the report. On wait-cap expiry render "Analysis pending — service temporarily unavailable" in the Solvency section and continue with every other metric.
+`get_financial_analysis` is async — server waits for the result; on a "still running" reply follow the async-jobs skill; never re-call. If it does not return a result, render the label per the async-jobs skill ("Analysis pending" with the `job_id` if still running; "Analysis unavailable" if it failed) in the Solvency section and continue with every other metric.
 
 ## Altman Z-Score
 
@@ -118,7 +118,7 @@ Overall light is the majority color across flagged metrics. **If two or more col
 
 **2a. Verdict sensitivity** (one line) — identify the selected model and its nearest boundary: Z uses 1.81/2.99; Z' uses 1.23/2.90. State the arithmetic flip condition using only that model's bands. Omit arithmetic when Altman is unavailable and repeat the reason instead. Scope is the Altman band only; the overall traffic light is a multi-metric vote.
 
-**3. Solvency Assessment** (narrative) — from `get_financial_analysis`, including accruals quality. High accruals (earnings not backed by cash) are a red flag independent of traditional credit metrics. If unavailable: `[Solvency assessment unavailable]`.
+**3. Solvency Assessment** (narrative) — from `get_financial_analysis`, including accruals quality. High accruals (earnings not backed by cash) are a red flag independent of traditional credit metrics. If it returned no result, render the label per the async-jobs skill ("Analysis pending" with the `job_id` if still running; "Analysis unavailable" if it failed).
 
 **4. Key Flags** (bullets) — every RED and AMBER flag with a one-line explanation citing the specific threshold breached.
 

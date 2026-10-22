@@ -1,17 +1,15 @@
 ---
 name: response-shapes
-description: Valid field names and response-block contracts for Parallax tools that take a fields subset — analyze_portfolio and get_telemetry. Prevents silently-invalid field requests.
+description: Valid field names and response-block contracts for Parallax tools that take a fields subset — analyze_portfolio and get_telemetry. Prevents invalid field requests.
 ---
 
 # Response Shapes
 
-Two Parallax tools accept a `fields` subset to cap response size. In both, `fields` is a **direct passthrough to the API**, not a validated enum.
+Two Parallax tools accept a `fields` subset to cap response size.
 
-**This is the failure mode that matters:** an invalid field name does not raise. The call returns `success: true`, the requested block simply never appears, and a workflow downstream reports "data unavailable" for something that was never actually asked for correctly. Always take field names from the tables below rather than inferring them from a section heading or a prose description of what you want.
+**`analyze_portfolio`'s `fields` is a validated enum, not a passthrough.** An invalid name fails the tool call outright with a schema error — it does not silently drop the block and return `success: true`. Always take field names from the table below rather than inferring them from a section heading or a prose description of what you want.
 
-**`analyze_portfolio` tells you which names were wrong — read it.** The response wraps its payload under a top-level `result` key, and `result._meta` carries `fields_requested`, `fields_returned`, and `invalid_fields`. Verified 2026-08-11: requesting `["portfolio_summary","factor_exposures","performance","risk","concentration"]` returned `success: true`, `fields_returned: ["portfolio_summary"]`, and `invalid_fields` naming all four bad names.
-
-**Runtime rule:** after any `analyze_portfolio` call, check `result._meta.invalid_fields`. A non-empty list is a caller error in this plugin, not missing data. Say so plainly rather than rendering the section as unavailable — the two look identical in output and have opposite causes.
+**`analyze_portfolio`'s `_meta` sits at the top level of the direct response, not under `result`.** If the result is fetched later through `check_job_status`, the payload (and its `_meta`) sits under `result`. It carries `fields_requested`, `fields_returned`, and `invalid_fields`. Through this MCP server `invalid_fields` stays empty, because an invalid name fails the call before it reaches the API.
 
 ## `analyze_portfolio`
 
@@ -22,19 +20,23 @@ Required shape: `portfolio=[{date, symbol, weight}]`. There is no `holdings` par
 | Group | Fields |
 |---|---|
 | Inputs / meta | `portfolio_parameters`, `portfolio_input`, `data_quality` |
-| Summary | `portfolio_summary`, `turnover_analysis` |
+| Summary | `portfolio_summary` |
 | Performance | `performance_metrics`, `rolling_metrics`, `drawdown_analysis`, `time_period_returns`, `monthly_returns`, `annual_returns` |
 | Scores | `portfolio_scores` |
 | Concentration / allocation | `concentration_metrics`, `sector_allocation`, `market_allocation`, `currency_allocation`, `latest_holdings` |
 | Contribution | `company_contribution`, `sector_contribution`, `market_contribution` |
 | Transactions | `transactions`, `company_info` |
-| Benchmark / series | `benchmark_prices`, `daily_summary` |
+| Benchmark / series | `daily_summary` |
 
-Omitting `fields` returns everything — large, and the usual cause of 180K-char truncation.
+`portfolio_scores` exists and is the authoritative engine score for the portfolio, on a **0-100 scale** (the MCP's own note; per-security scores and health-flag cutoffs are 0-10) — `quick_portfolio_scores` is the per-holding approximation, not a substitute for this block. There is no separate factor-exposure field; `portfolio_scores` is where factor data lives in this tool.
+
+Benchmark data is not a separate field: `daily_summary` rows carry `benchmark_value_base` alongside the portfolio's own daily figures.
+
+Omitting `fields` returns a **compact default** — `portfolio_summary`, `performance_metrics`, `portfolio_scores`, `concentration_metrics`, `data_quality` — not everything. Request the full field list explicitly if more is needed, and watch for the 180K-char truncation risk when doing so.
 
 ### Names that do NOT exist
 
-`performance`, `risk`, `concentration`, `factor_exposures`. These read like the right words and are not fields. `analyze_portfolio` returns **no factor-exposure block at all** — for factor data use `quick_portfolio_scores` or per-holding `get_peer_snapshot`, and see the `token-costs` skill for which path to prefer.
+`performance`, `risk`, `concentration`, `factor_exposures`. These read like the right words and are not valid fields — a call naming one of them, or any name outside the allowed list above, now fails with a schema error rather than silently omitting the block.
 
 ### Standard subsets
 
@@ -45,6 +47,8 @@ Omitting `fields` returns everything — large, and the usual cause of 180K-char
 | Cheapest useful call | `["portfolio_summary"]` |
 
 ## `get_telemetry`
+
+`get_telemetry`'s `fields` is a passthrough, not an enum: an invalid name is silently dropped, not rejected. Use only the names below.
 
 Default field set is ~60KB; `baskets` (~652KB) and `factor_view` sub-blocks (up to ~1.1MB) are opt-in and should never be requested speculatively.
 
@@ -62,7 +66,7 @@ Dot notation is supported and preferred — request `commentary.headline`, not t
 
 ## Semantic guards
 
-1. **`get_telemetry` returns inline.** Despite an async-looking tool description, a scoped call returns a result directly with no `job_id` and no polling. Verified 2026-08-11. It is not in the async set — see the `async-jobs` skill.
+1. **`get_telemetry` returns inline.** A scoped call normally returns a result directly with no `job_id` (on its rare 120s timeout it returns a "still running" reply with a `job_id`; handle it per the async-jobs skill and do not re-call), even though the server waits on it internally for up to 120s (see the `async-jobs` skill). Verified 2026-08-11.
 2. **Telemetry is market/basket-level, never per-security.** Do not attach a telemetry-derived confidence tag to an individual holding row; it describes the tape, not the name.
 3. **A block that is absent is not a block that is zero.** If a requested field does not appear in the response, treat it as unavailable and say so — never render it as null, zero, or "no concentration risk."
 4. **Field subsets do not change semantics.** Requesting fewer fields never re-scopes a computation; `performance_metrics` covers the same period whether or not you also asked for `drawdown_analysis`.

@@ -39,7 +39,7 @@ Then call `explain_methodology` (free) for every factor scoring ≥8 or ≤3, pe
 
 ## Path B — What does a factor mean?
 
-1. `explain_methodology` with the concept name. Valid concepts are exactly: value, quality, momentum, defensive, tactical, overall, factor_weighting, scoring. It does **not** cover Shariah/halal or other screens — for those, route to `/parallax:screen` and explain from that command's cited standard instead.
+1. `explain_methodology` with the concept name. Valid concepts are exactly: value, quality, momentum, defensive, tactical, overall, factor_weighting, scoring. It does **not** cover Shariah/halal or other screens — for those, route to `/parallax:screen` and explain the ratios and cutoffs that command states. It cites no standard; never name AAOIFI, DJIM, or MSCI as the standard in use.
 2. `list_docs` to locate the relevant methodology page.
 3. `get_docs` for that page when the user wants depth beyond the one-paragraph explanation.
 
@@ -49,8 +49,8 @@ All three are free. Use them generously here — this is the one command where t
 
 Resolve the ticker, then run the Path A batch (including the cross-validation gate). Additionally:
 
-- `get_score_analysis` supplies the trajectory. Do **not** pass `weeks` explicitly — the transport serializes numeric params as strings and validation fails. Rely on the server default and read the window it returns.
-- `get_news_synthesis` for fundamental catalysts. Async — poll per the `async-jobs` skill, never retry, never block the rest of the output. If it expires, render the score trajectory with "Catalyst check pending — service temporarily unavailable" and continue.
+- `get_score_analysis` supplies the trajectory. Do **not** pass `weeks` explicitly — some MCP clients have sent numeric params as strings, which fails validation. Rely on the server default and read the window it returns.
+- `get_news_synthesis` for fundamental catalysts. Async — server waits for the result; on a "still running" reply follow the `async-jobs` skill; never re-call. Fire it in the same batch so its server-side wait overlaps the other calls. If it does not return a result, render the score trajectory with the label per the async-jobs skill ("Analysis pending" with the `job_id` if still running; "Analysis unavailable" if it failed) and continue.
 - `explain_methodology` for whichever factor moved most.
 
 **Attribution honesty:** the score series is weekly and may lag price by up to ~7 days. If the user is asking about a move more recent than the last score data point, say the scores do not yet reflect it rather than constructing an explanation from the older data.

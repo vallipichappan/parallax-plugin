@@ -215,7 +215,7 @@ STRUCTURAL_GLOBAL = [
 ]
 
 # SCOPED checks would false-positive on legitimate public numbers elsewhere
-# (health-flag cutoffs, AAOIFI screen ratios), so they run only where
+# (health-flag cutoffs, halal screen ratios), so they run only where
 # investor-profile calibration would land.
 STRUCTURAL_SCOPED = [
     (

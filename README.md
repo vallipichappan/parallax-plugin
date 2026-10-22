@@ -169,7 +169,7 @@ margin of safety check on Tesla
 
 ## Where your data goes
 
-Each Parallax command sends the tool arguments Claude builds to Chicago Global's Parallax server at `https://mcp.chicago.global/api/mcp`. Those arguments include tickers, company names, portfolio holdings and weights, and query text. Requests are authenticated with your Parallax API key. Claude stores the key with the plugin's settings. Tool results return to Claude and are processed under your Claude account's terms. This plugin has no server of its own and stores nothing else. For how Chicago Global handles this data, see the [Chicago Global privacy policy](https://chicago.global/privacy-policy/).
+Each Parallax command sends the tool arguments Claude builds to Chicago Global's Parallax server at `https://mcp.chicago.global/api/mcp`. Those arguments include tickers, company names, portfolio holdings and weights, and query text. In advisor mode they also include any client context you supply, which Parallax's AI services process. Requests are authenticated with your Parallax API key. Claude stores the key with the plugin's settings. Tool results return to Claude and are processed under your Claude account's terms. This plugin has no server of its own and stores nothing else. For how Chicago Global handles this data, see the [Chicago Global privacy policy](https://chicago.global/privacy-policy/).
 
 ## Permissions
 

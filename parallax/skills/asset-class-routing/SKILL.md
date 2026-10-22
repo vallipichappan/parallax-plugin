@@ -11,15 +11,17 @@ Mismatched tool/asset-class pairs (e.g. `export_price_series("SPY")`) fail-empty
 
 | Tool | Equity (AAPL.O, JPM.N) | ETF (SPY, EWJ, QQQ) | Notes |
 |---|---|---|---|
-| `export_price_series` | ✓ supported | ✗ returns `{success:false, error}` (NOT `[]`) | Equity-only, FREE. Pass RIC with exchange suffix. A `success:false` response is itself a usable equity/ETF discriminator. |
-| `etf_daily_price` | ✗ returns `[]` | ✓ supported | ETF-only. Pass plain ticker (no suffix). Returns per-row `date` + `changepercent` — move AND date in one call. 1 token. |
-| `etf_profile` | ✗ returns `{"error":"No profile data found"}` | ✓ rich profile (name, exchange, scores, recommendation, `change_percent`) | **The asset-class oracle.** Its `change_percent` carries NO as-of/date field — use `etf_daily_price` when a dated ETF move is needed. Single-symbol probe. 1 token. |
+| `export_price_series` | ✓ supported | ✗ returns `{success:false, error}` (NOT `[]`) | Equity-only, 0.05 credits per symbol. Pass RIC with exchange suffix. A `success:false` response is itself a usable equity/ETF discriminator. |
+| `etf_daily_price` | ✗ returns `[]` | ✓ supported | ETF-only. Pass plain ticker (no suffix). Returns per-row `date` + `changepercent` — move AND date in one call. 0.05 credits per symbol. |
+| `etf_profile` | ✗ returns `{"error":"No profile data found"}` | ✓ rich profile (name, exchange, scores, recommendation, `change_percent`) | **The asset-class oracle.** Its `change_percent` carries NO as-of/date field — use `etf_daily_price` when a dated ETF move is needed. Single-symbol probe. 0.1 credits. |
 | `search_etfs` | n/a | ✓ supported | Discovery by keyword, market, or currency. No score filters; profile the results and filter client-side. |
 | `etf_holdings` | n/a | ✓ supported | Underlying holdings of an ETF. |
 | `get_company_info` | ✓ supported | ✓ partial (returns an equity-shaped record for some ETFs) | **Has NO `asset_class` field** — cannot distinguish equity from ETF. Use `etf_profile` for that. |
 | `get_peer_snapshot` | ✓ supported | partial — peer set may include both | Sector ETFs occasionally appear as peers; classify each peer before any downstream price call. |
 | `export_peer_comparison` | ✓ (peer set may include ETFs) | partial | Same caveat as `get_peer_snapshot`. |
 | `get_score_analysis` | ✓ supported | UNVERIFIED | Likely equity-only. Probe before using on an ETF. |
+| `get_performance_history` | ✓ supported | ✗ returns `{success:false, error:"No price history..."}` (verified on SPY, 2026-10-22) | Equity-only. Use `etf_daily_price` for an ETF's moves. |
+| `get_score_summary` | ✓ supported | ✗ returns `{success:false, status:400}` (verified on SPY, 2026-10-22) | Equity-only. |
 | `get_financials`, `get_stock_outlook`, `get_news_synthesis` | ✓ supported | UNVERIFIED | Validated in equity workflows only. |
 | `analyze_portfolio` | ✓ mixed-asset OK | ✓ mixed-asset OK | Holdings can be equity + ETF; aggregation is correct. |
 | `quick_portfolio_scores` | ✓ partial | UNVERIFIED | Symbol-mapping quirks — see conventions skill. |
@@ -68,6 +70,6 @@ When a tool returns empty/error *after* correct routing, the response depends on
 |---|---|---|
 | **Sizing / construction** | `/parallax:rebalance` (trade list), any hedge-ratio or target-weight output | **Atomic gate.** Refuse to render the primary deliverable — a partially-computed weight is a confidence-building lie. Halt with the named failure plus operator-action options. |
 | **Aggregation / attribution** | `/parallax:explain` (return decomposition), `/parallax:portfolio` (health flags) | **Partial render with explicit MISSING blocks.** Compute the aggregate on the remaining weight; surface each missing component by name. Never silently zero or drop. |
-| **Per-symbol research** | `/parallax:stock`, `/parallax:deep-dive`, `/parallax:etf` | **Per-section partial.** If one tool fails, render that section as "Analysis pending — tool unavailable" and continue with the rest, per the conventions skill fallback rules. |
+| **Per-symbol research** | `/parallax:stock`, `/parallax:deep-dive`, `/parallax:etf` | **Per-section partial.** If one tool fails, render that section with the fallback label from the conventions skill ("Data unavailable" for an instant tool; for an async tool, "Analysis pending" with the `job_id` if still running, "Analysis unavailable" if it failed) and continue with the rest, per the conventions skill fallback rules. |
 
 Routing correctness (right tool for the asset class) is separate from the failure contract. When authoring a workflow, ask: if tool X returns empty for one input, does the user want a halt, a partial, or a per-section fallback?

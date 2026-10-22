@@ -54,7 +54,7 @@ If ambiguous with a ticker present → default to consensus. If no ticker and no
 
 Per the Buffett section of the investor-profiles skill — assess each documented tilt by direction and mark met/not met. Do not publish a cutoff for any factor.
 
-For any factor score notably high or low (top/bottom quartile), call `explain_methodology` (free) to include the Parallax definition.
+For any factor score that meets the parallax-scoring skill's proactive trigger, call `explain_methodology` (free) to include the Parallax definition.
 
 ### Verdict
 
@@ -68,7 +68,7 @@ Per output template in investor-profiles skill. Data table: Factor | Score | 52-
 
 ## Greenblatt Mode
 
-**Universe scoping warning:** `build_stock_universe` times out on broad queries. Default: "US large-cap consumer staples". Sector-scoped queries only. If timeout, retry narrower once; second timeout → return INSUFFICIENT_UNIVERSE.
+**Universe scoping warning:** `build_stock_universe` times out on broad queries. Default: "US large-cap consumer staples". Sector-scoped queries only. On a "still running" reply, run one `check_job_status` on the returned `job_id`. If it is still pending, do not start a second job: return INSUFFICIENT_UNIVERSE, and name the pending `job_id` with an offer to check it later. Only if the job failed, run one narrower query — a new billed call (5 credits), not a re-call. Handle that query's reply the same way (one `check_job_status` if still running); if it fails or is still pending, return INSUFFICIENT_UNIVERSE.
 
 ### Universe Mode (no ticker)
 
@@ -82,7 +82,7 @@ Do not add `get_peer_snapshot` solely for pedagogy. The financial ranking alread
 
 ### Ticker-check Mode (single ticker)
 
-1. `get_company_info` to identify sector/industry.
+1. `get_company_info` and `get_peer_snapshot` in parallel. `get_company_info` gives sector/industry; run the cross-validation gate per the conventions skill and stop on mismatch.
 2. `build_stock_universe` with sector-based peer query (e.g., "US large-cap technology hardware" for AAPL).
 3. Cap the candidate set, pull ratios, rank per universe mode steps 3-4. If the universe omitted the target or the cap cut it, add the target to the ranked set and say so in the output.
 4. Check target ticker's combined rank.
@@ -139,15 +139,15 @@ Checklist table: Check | Observed | Peer comparator | Result. Report observed va
 
 ### Basket Mode (no ticker)
 
-6. For each theme, `build_stock_universe` with sector-scoped thematic query (retry narrower on timeout).
+6. For each theme, `build_stock_universe` with sector-scoped thematic query. Timeout handling: on a "still running" reply, run one `check_job_status` on the returned `job_id`. If it is still pending, do not start a second job: drop that theme for this run and list it as pending, and name the pending `job_id` with an offer to check it later. Only if the job failed, run one narrower query — a new billed call (5 credits), not a re-call. Handle that query's reply the same way (one `check_job_status` if still running); if it is still pending, drop that theme for this run and list it as pending with its `job_id`; if it failed, drop that theme and list it as unavailable.
 7. Cap each theme at top 20 by composite_score.
 8. Call `get_peer_snapshot` and `get_company_info` for the top 3-5 per theme in parallel. Drop identity mismatches.
 9. Rank within theme by momentum + macro sensitivity.
 
 ### Single-ticker Mode
 
-6. `get_company_info` on the ticker — retrieve sector/industry.
-7. For each theme, `build_stock_universe` with sector-scoped query.
+6. `get_company_info` and `get_peer_snapshot` on the ticker in parallel — sector/industry, plus the cross-validation gate per the conventions skill. Stop on mismatch.
+7. For each theme, `build_stock_universe` with sector-scoped query. On a timeout or failure, follow the Basket Mode step 6 handling for that theme, but never skip the A2 check: per the investor-profiles skill, a `build_stock_universe` timeout does not collapse Channel A.
 8. Run the dual-channel exposure check per the Soros section of the investor-profiles skill (Channel A has two sub-paths A1 + A2 — either sufficient; Channel B can be UNAVAILABLE).
 
 ### Verdict (single-ticker)
@@ -182,7 +182,7 @@ Render "Consensus unavailable — requires server-side calibration." Follow the 
 
 ### Factor-Level Agreement (load-bearing)
 
-Per investor-profiles skill: surface the three buckets — shared signals (flagged by more than one profile), single-profile signals, and absence signals (collective blind spots). This section is pedagogically load-bearing — do not skip it.
+Per investor-profiles skill: surface the three buckets — shared signals (flagged by more than one matching or partial profile), single-profile signals, and absence signals (collective blind spots). This section is pedagogically load-bearing — do not skip it.
 
 ### Render
 
@@ -206,15 +206,15 @@ Full matches (M): <count>
 Consensus unavailable — requires server-side calibration
 
 ## Shared factor signal
-Flagged by more than one matching profile: <list>
+Flagged by more than one matching or partial profile: <list>
 Single-profile signals: <list>
 Collective blind spots: <list>
 
 Interpretation: <2-3 sentence plain-language summary>
 
 ## Methodology footer
-Profiles executed: <list with token costs>
-Total token cost: <sum>
+Profiles executed: <list with credit costs>
+Total credit cost: <sum>
 ```
 
 End with the consensus umbrella disclaimer from the investor-profiles skill.

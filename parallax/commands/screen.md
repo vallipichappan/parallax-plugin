@@ -17,33 +17,37 @@ Resolve symbols via `search_stocks` (free) per the conventions skill.
 
 ## Halal Mode
 
-### AAOIFI / DJIM Thresholds
+### Total-Assets Ratio Screen
 
 | Ratio | Threshold | Pass condition |
 |---|---|---|
-| Total debt / Total assets | < 33% | Low leverage |
-| (Cash + interest-bearing securities) / Total assets | < 33% | Limited interest exposure |
-| (Interest income + non-permissible revenue) / Total revenue | < 5% | Negligible haram income |
+| Total debt / Total assets | ≤ 33.33% | Low leverage |
+| Cash and short-term investments / Total assets | ≤ 33.33% | Limited interest exposure |
+| Interest-and-investment income / Total revenue | ≤ 5% | Negligible interest income |
+
+These ratios and cutoffs are this screen's own fixed values. They are commonly used screening ratios, not a claim of conformance to any named standard. Published Shariah screens differ on the denominator, the cutoffs, and the set of ratios; one published example is the [MSCI Islamic Index Series methodology (Oct 2024)](https://www.msci.com/indexes/documents/methodology/2_MSCI_Islamic_Index_Series_Methodology_20241030.pdf). This screen is not affiliated with or endorsed by any index provider or standards body, and its result is not interchangeable with theirs. Never describe a result as compliant with a named standard such as AAOIFI, DJIM, or MSCI. If the user asks for a named standard, state the ratios, denominators and cutoffs used here, and say this is not that standard.
+
+Ratio 3's numerator is interest-and-investment income from `get_financials` (statement="income"). Parallax has no field for revenue from prohibited business activities, so Ratio 3 and the purification ratio are narrower than a standard that also counts that revenue. Say so in the Key Ratios output.
 
 ### Single Stock Workflow
 
 1. `get_company_info` — check sector against prohibited industries (conventional banking/insurance, alcohol, tobacco, gambling, pork, weapons, adult entertainment). **Short-circuit:** if the business-activity screen FAILs, mark non-compliant and skip the financial calls entirely — the ratios cannot cure a prohibited industry.
-2. If activity screen passes, in parallel: `get_financials` (statement="balance_sheet") + `get_financials` (statement="ratios"). Compute the 3 ratios above. **FAIL if any threshold breached.**
-3. If >0% but <5% non-permissible revenue: compute purification ratio (non-permissible / total income).
-4. Optional: `get_financial_analysis` for deeper profitability decomposition (async ~2-5 min — warn user, poll per async-jobs skill).
+2. If activity screen passes, in parallel: `get_financials` (statement="balance_sheet") + `get_financials` (statement="income"). Compute the 3 ratios above. Do not use statement="ratios": it carries no interest-income or revenue field (verified live 2026-10-22). If any input field a ratio needs is missing or null, that ratio is "Data unavailable" — never treat a missing value as a pass. A stock with any ratio "Data unavailable" gets no compliant verdict: mark it **Unverified**. **FAIL (non-compliant) if any computed ratio breaches its threshold** — a breach on a successfully computed ratio overrides an Unverified status from a different ratio's missing data.
+3. If Ratio 3 is above 0% and at or below 5%: compute the purification ratio (interest-and-investment income / total revenue).
+4. Optional: `get_financial_analysis` for deeper profitability decomposition (async, up to ~5 min server-side — warn user; on a "still running" reply follow the async-jobs skill, never re-call).
 5. `get_score_analysis` for quality trajectory. Note: `explain_methodology` does not cover shariah/halal concepts — do not route there.
 
 ### Portfolio Mode
 
 1. Run single-stock check for each holding. **Cap at 20 holdings** (top by weight, plus any the user names); list skipped holdings in a coverage note.
-2. `check_portfolio_redundancy` on compliant holdings only — apply the redundancy sanity-check only at N≥8 (below that, single-sector concentration is a natural screening outcome, not a tool defect).
+2. `check_portfolio_redundancy` on compliant holdings only — apply the redundancy sanity-check only at N≥8 (below that, single-sector concentration is a natural screening outcome, not a tool defect). Unverified holdings are excluded from both the redundancy check and the alternatives search; list them in the output with the missing input named.
 3. For non-compliant: `build_stock_universe` by sector for alternatives → screen alternatives → call `get_peer_snapshot` and `get_company_info` on compliant ones. Drop candidates failing cross-validation per the conventions skill.
 
 ### Output
 
-- **Screening Criteria** — AAOIFI/DJIM thresholds
-- **Compliance Results** — table: symbol, compliant Y/N, reason if non-compliant
-- **Key Ratios** — debt/assets %, interest-bearing/assets %, non-permissible revenue %
+- **Screening Criteria** — total-assets thresholds (this screen's own values)
+- **Compliance Results** — table: symbol, status (Compliant / Non-compliant / Unverified), reason if non-compliant or Unverified
+- **Key Ratios** — debt/assets %, cash and short-term investments/assets %, interest-and-investment income/revenue %, with the Ratio 3 scope note
 - **Purification Amount** — if applicable
 - **Alternatives** — scored compliant replacements. These come from `build_stock_universe`, which is not reproducible run-to-run; say the alternatives are a point-in-time sample, per the conventions skill's Universe Search Reproducibility section. Decide emptiness from the `companies` array alone, and when the response carries `degraded: true`, name the `relaxed` screens in a degraded-coverage note, per the same skill.
 
@@ -57,16 +61,17 @@ Render the AI-interaction disclosure per the conventions skill §9.2, then end w
 
 | Tool | Parameters | Notes |
 |---|---|---|
-| `get_score_analysis` | `symbol` | Quality score trajectory (server-default 52-week window) |
+| `get_company_info` | `symbol` | Ground-truth identity |
+| `get_score_analysis` | `symbol` | Quality score trajectory (server-default 52-week window). Verify `data[0].symbol` against the requested RIC per the conventions skill; on mismatch refuse the verdict |
 | `get_financials` | `symbol`, statement="income" | Revenue/margin trends (server-default periods) |
 | `get_financials` | `symbol`, statement="cash_flow" | Cash conversion |
 | `get_financials` | `symbol`, statement="ratios" | Accrual ratios |
-| `get_financial_analysis` | `symbol` | Async ~2-5 min — Palepu forensic. Warn user upfront; poll per async-jobs skill |
-| `get_news_synthesis` | `symbol` | Async — accounting news, auditor changes |
+| `get_financial_analysis` | `symbol` | Async, up to ~5 min server-side — Palepu forensic. Warn user upfront; on a "still running" reply follow the async-jobs skill, never re-call |
+| `get_news_synthesis` | `symbol` | Async — server waits for the result; on a "still running" reply follow the async-jobs skill; never re-call — accounting news, auditor changes |
 
 ### Batch B — AI synthesis (after A)
 
-`get_assessment` with prompt focused on: earnings quality concerns, revenue recognition patterns, accrual anomalies, cash flow vs earnings divergence, and any specific user concerns. Feed in all Batch A findings. Poll with the async-jobs wait cap; on expiry render Batch A findings with "AI synthesis pending — service temporarily unavailable."
+`get_assessment` with prompt focused on: earnings quality concerns, revenue recognition patterns, accrual anomalies, cash flow vs earnings divergence, and any specific user concerns. Feed in all Batch A findings. Async — server waits for the result; on a "still running" reply follow the async-jobs skill; never re-call. If it does not return a result, render Batch A findings with the label per the async-jobs skill ("Analysis pending" with the `job_id` if still running; "Analysis unavailable" if it failed).
 
 ### Output
 
