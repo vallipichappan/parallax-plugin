@@ -23,7 +23,7 @@ Parallax scores are computed across 65,000+ companies before the session starts.
 
 | Capability | What it provides | Why it's unique |
 |---|---|---|
-| **Halal/Shariah screening** | AAOIFI/DJIM threshold compliance with purification ratios | No other Claude plugin offers Islamic finance screening |
+| **Halal/Shariah screening** | MSCI-style Shariah ratio screen (total-assets basis) with purification ratios | No other Claude plugin offers Islamic finance screening |
 | **Health flag system** | 5 binary flags with priority matrix for portfolio diagnostics | Structured triage, not ad-hoc analysis |
 | **Event-driven scenario analysis** | Exposure ranking + rotation candidates + action plan | Forward-looking with transmission mechanism analysis |
 | **Parallel batching** | 8-11 simultaneous MCP calls with explicit fallback patterns | Not generic retry — specific fallbacks per tool type |

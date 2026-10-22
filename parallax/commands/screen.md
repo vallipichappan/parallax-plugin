@@ -17,13 +17,15 @@ Resolve symbols via `search_stocks` (free) per the conventions skill.
 
 ## Halal Mode
 
-### AAOIFI / DJIM Thresholds
+### MSCI-Style Total-Assets Screen
 
 | Ratio | Threshold | Pass condition |
 |---|---|---|
-| Total debt / Total assets | < 33% | Low leverage |
-| (Cash + interest-bearing securities) / Total assets | < 33% | Limited interest exposure |
-| (Interest income + non-permissible revenue) / Total revenue | < 5% | Negligible haram income |
+| Total debt / Total assets | ≤ 33.33% | Low leverage |
+| (Cash + interest-bearing securities) / Total assets | ≤ 33.33% | Limited interest exposure |
+| (Interest income + non-permissible revenue) / Total revenue | ≤ 5% | Negligible haram income |
+
+These ratios follow the MSCI Islamic Index Series, which uses total assets as the denominator ([methodology, Oct 2024](https://www.msci.com/indexes/documents/methodology/2_MSCI_Islamic_Index_Series_Methodology_20241030.pdf)). This is not an AAOIFI SS 21 screen, which uses 30% of market capitalization, or a Dow Jones Islamic Market screen, which uses 33% of 24-month average market capitalization. Never describe a result as AAOIFI- or DJIM-compliant. If the user asks for either standard, say this screen uses the MSCI method.
 
 ### Single Stock Workflow
 
@@ -41,7 +43,7 @@ Resolve symbols via `search_stocks` (free) per the conventions skill.
 
 ### Output
 
-- **Screening Criteria** — AAOIFI/DJIM thresholds
+- **Screening Criteria** — MSCI-style total-assets thresholds
 - **Compliance Results** — table: symbol, compliant Y/N, reason if non-compliant
 - **Key Ratios** — debt/assets %, interest-bearing/assets %, non-permissible revenue %
 - **Purification Amount** — if applicable
