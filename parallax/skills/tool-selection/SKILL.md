@@ -25,10 +25,13 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "What's the news on [stock]?" | `get_news_synthesis` |
 | "What are the financials?" | `get_financials` |
 | "What do analysts think?" | `get_stock_outlook` (aspect="analyst_targets") |
-| "Price history / performance" | `export_price_series` (stocks, free) or `etf_daily_price` (ETFs) — route per asset-class-routing skill |
+| "Price history / daily prices" | `export_price_series` (stocks) or `etf_daily_price` (ETFs) — route per asset-class-routing skill |
+| "How has [stock] performed?" / "returns by year or month" | `get_performance_history` — YTD, 12-month, yearly and monthly returns, 1-year return and volatility against peers |
 | "Full research report PDF" | `get_stock_report` (~2 min) |
+| "ETF research report" | `get_etf_report` (~1-2 min, 10 credits); if it returns several candidate ETFs, confirm one with the user before generating |
 | "Deep dive on [stock]" | `/parallax:deep-dive` |
 | "What's the market doing today?" | `get_telemetry` |
+| "Which theme is [stock] in?" / "what's moving in [market]?" / "top baskets" | `explore_telemetry` — telemetry baskets by stock, market, or theme; the daily narrative and regime stay with `get_telemetry` |
 | "How does scoring work?" | `explain_methodology` |
 | "Is [stock] halal / Shariah compliant?" | `/parallax:screen` (halal mode) |
 | "Check earnings quality of [stock]" | `/parallax:screen` (quality mode) |
@@ -36,6 +39,7 @@ description: Reference for which Parallax MCP tool or command to call for any in
 | "Compare [stock A] vs [stock B]" | `get_company_info` + `get_peer_snapshot` per stock, cross-validated per the conventions skill, shown side by side on the sector-relative 0-10 scale. If A and B are in different sectors, say so and do not rank one above the other on raw score. `export_peer_comparison` covers one symbol's peer set, so it compares A with B only when B is already one of A's peers |
 | "How does [stock] compare to its peers?" | `/parallax:peers` |
 | "Who are [stock]'s competitors / peer group?" | `/parallax:peers` |
+| "Is [stock]'s score rising or falling?" | `get_score_summary` — current score, 13-week trend, 52-week range; week-by-week history is `get_score_analysis` |
 | "Why does [stock] score that way?" | `/parallax:why-score` |
 | "What does the [factor] factor measure?" | `/parallax:why-score` |
 | "Why did [stock]'s score drop?" | `/parallax:why-score` |

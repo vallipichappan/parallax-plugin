@@ -15,7 +15,7 @@ Never pass numeric parameters (`weeks`, `periods`, `limit`, `days`) explicitly �
 
 Resolve the symbol with `search_stocks` first; fall back to the conventions skill suffix table (plain `AAPL` → `AAPL.O`). Exchange suffix is load-bearing.
 
-## Batch A — Core financials (parallel, 6 tokens)
+## Batch A — Core financials (parallel, 0.35 credits)
 
 | Tool | Parameters | Extracts |
 |---|---|---|

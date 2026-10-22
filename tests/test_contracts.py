@@ -294,6 +294,29 @@ class WorkflowContractTests(unittest.TestCase):
                     "cost row names a candidate count the profile spec redacts",
                 )
 
+    def test_greenblatt_costs_are_formulas_not_totals(self) -> None:
+        """A numeric total lets a reader back-solve the redacted candidate count.
+
+        The Greenblatt rows and the consensus rows that include them state
+        formulas or sums only, never a credit total.
+        """
+        costs = read(SKILLS / "token-costs" / "SKILL.md")
+        rows = [ln for ln in costs.splitlines() if ln.startswith("| `/parallax:investor` (greenblatt")]
+        consensus = [ln for ln in costs.splitlines() if ln.startswith("| `/parallax:investor` (consensus")]
+        self.assertEqual(len(consensus), 2)
+        for line in consensus:
+            with self.subTest(line=line):
+                self.assertIsNone(re.search(r"~\s*\d", line), "a consensus total includes Greenblatt")
+        profiles = read(SKILLS / "investor-profiles" / "SKILL.md")
+        sequences = [ln for ln in section(profiles, "## Greenblatt Profile", "## Klarman Profile").splitlines()
+                     if ln.startswith("**Tool sequence")]
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(len(sequences), 2)
+        for line in rows + sequences:
+            with self.subTest(line=line):
+                self.assertIn("0.05 per candidate", line)
+                self.assertIsNone(re.search(r"~\s*\d", line), "a total lets the cap be inferred")
+
     def test_peer_snapshot_misleading_fields_are_documented(self) -> None:
         """peer_count excludes the target and target_score is a string.
 
@@ -414,11 +437,24 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertNotIn("UNVERIFIED", costs)
         self.assertNotRegex(costs, r"(?i)unpriced")
         self.assertNotRegex(read(COMMANDS / "etf.md"), r"(?i)unpriced")
-        free_row = next(line for line in costs.splitlines() if "**0 (free)**" in line)
-        self.assertNotIn("`search_etfs`", free_row)
-        one_row = next(line for line in costs.splitlines() if "**1 each**" in line)
-        for tool in ("`search_etfs`", "`etf_holdings`"):
-            self.assertIn(tool, one_row)
+        # Prices follow the served Cost: markers (credit contract of 2026-10-18).
+        rows = {line.split("|")[1].strip(): line for line in costs.splitlines() if line.startswith("| **")}
+        expected = {
+            "**0 (free)**": ("search_stocks", "search_etfs", "list_macro_countries", "check_macro_health"),
+            "**0.05 per symbol**": ("get_company_info", "export_price_series", "etf_daily_price", "get_financials"),
+            "**0.1 per call**": ("get_peer_snapshot", "get_score_analysis", "etf_profile", "etf_holdings"),
+            "**0.1 per holding**": ("quick_portfolio_scores", "check_portfolio_redundancy"),
+            "**5 per call**": ("build_stock_universe", "macro_analyst", "analyze_portfolio"),
+            "**10 per call**": ("get_stock_report", "get_assessment", "get_etf_report"),
+        }
+        for label, tools in expected.items():
+            for tool in tools:
+                with self.subTest(price=label, tool=tool):
+                    self.assertIn(f"`{tool}`", rows[label])
+        # The server bills in credits; integer token prices are the pre-2026-10-18 table.
+        for path in (*COMMANDS.glob("*.md"), *SKILLS.glob("*/SKILL.md")):
+            with self.subTest(unit=path.name):
+                self.assertNotRegex(read(path), r"\b\d+(?:-\d+)? tokens?\b")
         workflows = costs.split("## Workflow Cost Estimates", 1)[1]
         for path in COMMANDS.glob("*.md"):
             with self.subTest(command=path.stem):
@@ -444,7 +480,7 @@ class WorkflowContractTests(unittest.TestCase):
         batch = section(text, "## Batch A", "## Batch B")
         for statement in ("income", "balance_sheet", "cash_flow", "ratios"):
             self.assertIn(f'statement="{statement}"', batch)
-        self.assertIn("parallel, 6 tokens", text)
+        self.assertIn("parallel, 0.35 credits", text)
         for variable in (
             "Working Capital",
             "Retained Earnings",
@@ -491,8 +527,9 @@ class WorkflowContractTests(unittest.TestCase):
     def test_marketing_stock_call_count_matches_command(self) -> None:
         positioning = read(ROOT / "docs" / "positioning.md")
         self.assertIn("fires 10 parallel MCP calls", positioning)
-        self.assertIn("becomes cheaper", positioning)
-        self.assertIn("at 6 holdings", positioning)
+        # 0.1 credits per holding against 5 flat: parity at 50 holdings.
+        self.assertIn("cost the same at 50 holdings", positioning)
+        self.assertNotIn("at 6 holdings", positioning)
 
 
 if __name__ == "__main__":

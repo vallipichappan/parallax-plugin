@@ -61,7 +61,7 @@ Every profile output must include, in order:
 3. **Characterization statement:** One sentence on what the source documents
 4. **Data table/checklist:** Profile-specific (factor table, rank table, balance-sheet checks, or theme-exposure table), reporting observed values only — never target values
 5. **Verdict:** `match` (fits every documented criterion) / `partial_match` (fits some) / `no_match` (fits none) — with the count of criteria met
-6. **Methodology footer:** Source citation, tool sequence, token cost
+6. **Methodology footer:** Source citation, tool sequence, credit cost
 7. **AI-interaction disclosure:** render per the conventions skill §9.2, immediately above the disclaimer
 8. **Disclaimer:** VERBATIM from below — substitute `[Investor]` with the named investor only
 
@@ -91,7 +91,7 @@ This output is an AI-inferred synthesis produced by the Parallax AI Investor Pro
 
 **Documented tilts (direction only):** Quality high, Value high, Defensive high. The cited work documents **no** meaningful momentum loading — do not present any momentum criterion as a finding of the source.
 
-**Tool sequence:** `get_company_info`, `get_peer_snapshot`, `get_financials` (summary), `get_score_analysis`, `explain_methodology` (free). ~4 tokens.
+**Tool sequence:** `get_company_info`, `get_peer_snapshot`, `get_financials` (summary), `get_score_analysis`, `explain_methodology` (free). ~0.3 credits.
 
 ---
 
@@ -112,8 +112,8 @@ This output is an AI-inferred synthesis produced by the Parallax AI Investor Pro
 
 Report the target's observed rank and percentile. Exclude financials and utilities by default. EY computed as 1/enterprise_value_ebit.
 
-**Tool sequence (universe):** `build_stock_universe` (5), `get_financials` (ratios) per candidate (1 each — this dominates). ~35-40 tokens. Do not add `get_peer_snapshot` solely for pedagogy; it does not affect the Magic Formula ranking.
-**Tool sequence (ticker-check):** `get_company_info` + `get_peer_snapshot` (cross-validation gate), `build_stock_universe` (5), `get_financials` (ratios) per candidate (1 each). ~36-41 tokens.
+**Tool sequence (universe):** `build_stock_universe` (5), `get_financials` (ratios) per candidate (0.05 each). Total: 5 + 0.05 per candidate. Do not add `get_peer_snapshot` solely for pedagogy; it does not affect the Magic Formula ranking.
+**Tool sequence (ticker-check):** `get_company_info` + `get_peer_snapshot` (cross-validation gate), `build_stock_universe` (5), `get_financials` (ratios) per candidate (0.05 each). Total: 5.15 + 0.05 per candidate.
 
 ---
 
@@ -129,7 +129,7 @@ Compute net cash from the balance sheet (cash - total debt), NOT from the ratios
 
 **Distinctive footer:** where the profile reaches `no_match`, note that *"No position warranted on this ticker per margin-of-safety principles. Cash is a valid stance."*
 
-**Tool sequence:** `get_company_info`, `get_peer_snapshot`, `get_financials` (balance_sheet, cash_flow, ratios). ~5-7 tokens.
+**Tool sequence:** `get_company_info`, `get_peer_snapshot`, `get_financials` (balance_sheet, cash_flow, ratios). ~0.3 credits.
 
 ---
 
@@ -167,8 +167,8 @@ Same macro workflow (steps 1-4), then a dual-channel exposure check:
 
 **Verdict:** both channels flagged → `match`; one flagged → `partial_match`; neither → `no_match`. **`match` is NEVER reached when Channel B is UNAVAILABLE** — maximum is `partial_match`. These are discrete channels, so per the Verdict Sensitivity Guard there is no flip point to describe.
 
-**Tool sequence (basket):** `list_macro_countries`, `macro_analyst` per market, `get_telemetry`, `build_stock_universe` per theme, `get_peer_snapshot`, `get_company_info`. ~28-72 tokens.
-**Tool sequence (single-ticker):** Same macro and telemetry steps, one targeted `get_company_info` + `get_peer_snapshot` cross-validation gate in place of the basket's per-theme leader snapshots, and `build_stock_universe` per theme for Channel A1. ~24-44 tokens.
+**Tool sequence (basket):** `list_macro_countries`, `macro_analyst` per market, `get_telemetry`, `build_stock_universe` per theme, `get_peer_snapshot`, `get_company_info`. ~21-42 credits, driven by 5 per macro market and 5 per theme universe.
+**Tool sequence (single-ticker):** Same macro and telemetry steps, one targeted `get_company_info` + `get_peer_snapshot` cross-validation gate in place of the basket's per-theme leader snapshots, and `build_stock_universe` per theme for Channel A1. ~20-40 credits, driven by 5 per macro market and 5 per theme universe.
 
 ---
 
@@ -198,6 +198,6 @@ Cross-profile agreement IS the high-conviction signal. This section is pedagogic
 - Skipped profiles reduce coverage; report their reasons and retain the unavailable consensus signal.
 - Partial data verdict → capped at `partial_match`, cannot be `match`
 
-### Token Cost
+### Credit Cost
 
-Consensus is the most expensive operation in the plugin. See the `token-costs` skill for its cost; that skill is canonical.
+Consensus on a basket is the most expensive operation in the plugin. See the `token-costs` skill for its cost; that skill is canonical.

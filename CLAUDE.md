@@ -31,7 +31,7 @@ Installation for end users: `claude plugin marketplace add vallipichappan/parall
 The plugin's intelligence lives in the **interplay between commands and skills**, not in code.
 
 - **Commands** (`parallax/commands/*.md`) are user-facing slash commands. Each one defines a workflow (tool batch, parallelism, output shape) but delegates *rules* to skills.
-- **Skills** (`parallax/skills/<name>/SKILL.md`) are non-user-facing reference documents that commands point to. They carry the cross-cutting behavior — RIC resolution, fallback policy, factor thresholds, health-flag math, token-cost routing, async polling patterns, investor-profile specs.
+- **Skills** (`parallax/skills/<name>/SKILL.md`) are non-user-facing reference documents that commands point to. They carry the cross-cutting behavior — RIC resolution, fallback policy, factor thresholds, health-flag math, credit-cost routing, async polling patterns, investor-profile specs.
 
 A command like `stock.md` will say "apply cross-validation per conventions skill" and `why-score.md` will say "apply threshold per parallax-scoring skill" — so **the skill is the spec, the command is the pipeline**. When editing behavior that spans multiple commands (disclaimer text, fallback rules, RIC suffixes, verdict math), edit the skill, not the commands.
 
@@ -41,7 +41,7 @@ A command like `stock.md` will say "apply cross-validation per conventions skill
 |---|---|
 | `conventions` | RIC resolution table, cross-validation gate, parallel vs dependent tools, fallback rules (instant/async), verbatim disclaimer. Applies to every command. |
 | `tool-selection` | Decision table mapping user utterances → MCP tool or slash command. |
-| `token-costs` | Per-tool token cost table + routing rules. `quick_portfolio_scores` is the default scoring path; `analyze_portfolio` is a performance-analytics product, preferred for scoring economy only at 15+ holdings. All four ETF tools (`search_etfs`, `etf_profile`, `etf_holdings`, `etf_daily_price`) priced at 1. |
+| `token-costs` | Per-tool credit cost table + routing rules (the name is historical; the server bills in credits). `quick_portfolio_scores` (0.1 per holding) is the default scoring path; `analyze_portfolio` (5 flat) is a performance-analytics product and never cheaper for scoring below 50 holdings. Prices come from the served `Cost:` markers. |
 | `response-shapes` | Valid `fields` names for `analyze_portfolio` and `get_telemetry`. Both are **passthrough** params — an invalid name fails silently rather than erroring, so field names come from here, never from inference. |
 | `async-jobs` | Polling pattern for `check_job_status`; which tools are async and their wait times. |
 | `health-flags` | 5-flag portfolio health system, priority matrix, drill-down selection, mixed-exchange fallback. Used by `/parallax:portfolio` and `/parallax:rebalance`. |
@@ -66,7 +66,7 @@ A command like `stock.md` will say "apply cross-validation per conventions skill
 - **Adding a command:** create `parallax/commands/<name>.md` with frontmatter (`description`, `argument-hint`). Reference the existing skills rather than restating their rules. Update `README.md` command table and `parallax/skills/tool-selection/SKILL.md`. Bump `parallax/.claude-plugin/plugin.json` version.
 - **Adding a skill:** create `parallax/skills/<name>/SKILL.md` with frontmatter (`name`, `description`) — the subdirectory layout is mandatory; flat `skills/*.md` files are never discovered by the plugin loader. Reference it from the commands that need it.
 - **Changing thresholds** (e.g., health-flag cutoffs, Shariah screen ratios): update the skill spec that owns them, then re-verify against the anchor tickers named in that section. Investor-profile cutoffs are out of scope here — see the calibration invariant above.
-- **Token-cost changes:** update the `token-costs` skill table *and* the workflow cost estimates at the bottom, *and* per-command mentions if any.
+- **Credit-cost changes:** update the `token-costs` skill table *and* the workflow cost estimates at the bottom, *and* per-command mentions if any.
 
 ### Porting from `parallax-workflows`
 

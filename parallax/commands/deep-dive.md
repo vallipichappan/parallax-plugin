@@ -43,7 +43,7 @@ Apply fallback rules from conventions skill for any missing data.
 
 ## Full Mode
 
-For deeper due diligence, add to Batch A: `get_financials` for income, balance_sheet, cash_flow, ratios (4 statements) + `get_stock_report` (~2 min async, 10 tokens). Warn about cost and wait time. **Scope note:** Full Mode output is an internal analyst working document, not designed for client forwarding — say so in the output header.
+For deeper due diligence, add to Batch A: `get_financials` for income, balance_sheet, cash_flow, ratios (4 statements) + `get_stock_report` (~2 min async, 10 credits). Warn about cost and wait time. **Scope note:** Full Mode output is an internal analyst working document, not designed for client forwarding — say so in the output header.
 
 ## Output
 

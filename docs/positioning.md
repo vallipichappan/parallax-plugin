@@ -27,4 +27,4 @@ Parallax scores are computed across 65,000+ companies before the session starts.
 | **Health flag system** | 5 binary flags with priority matrix for portfolio diagnostics | Structured triage, not ad-hoc analysis |
 | **Event-driven scenario analysis** | Exposure ranking + rotation candidates + action plan | Forward-looking with transmission mechanism analysis |
 | **Parallel batching** | 8-11 simultaneous MCP calls with explicit fallback patterns | Not generic retry — specific fallbacks per tool type |
-| **Token-cost-aware routing** | Crossover points documented (e.g., `analyze_portfolio` becomes cheaper than `quick_portfolio_scores` at 6 holdings) | Cost discipline built into every workflow |
+| **Credit-cost-aware routing** | Crossover points documented (e.g., `quick_portfolio_scores` and `analyze_portfolio` cost the same at 50 holdings) | Cost discipline built into every workflow |

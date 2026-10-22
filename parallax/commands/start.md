@@ -91,7 +91,7 @@ Ask once: *"Which lens — Buffett (quality + value), Greenblatt (magic formula)
 | Any single named investor | `/parallax:investor <name> <ticker>` |
 | All / consensus / compare | `/parallax:investor consensus <ticker>` |
 
-These are AI-inferred profiles built from public sources — always third-person ("Buffett-style", never "Buffett says"), each citing its academic or biographical anchor. Warn before running consensus: it is by far the most expensive operation here (see the `token-costs` skill).
+These are AI-inferred profiles built from public sources — always third-person ("Buffett-style", never "Buffett says"), each citing its academic or biographical anchor. Warn before running consensus: on a basket it is the most expensive operation here (see the `token-costs` skill).
 
 ## Payload shortcut
 
@@ -123,7 +123,7 @@ Never more than three. Examples: after a stock read, *"Want the peer comparison 
 - If they name a command directly, skip routing and run it.
 - Mention RIC format (`AAPL.O`) only if a resolution actually fails — `search_stocks` handles plain tickers.
 - If a workflow fails, stay calm and offer an alternative rather than a stack trace.
-- Never mention token costs unless asked, or unless the user is about to trigger consensus.
+- Never mention credit costs unless asked, or unless the user is about to trigger consensus on a basket.
 
 ## Disclaimer
 

@@ -213,8 +213,8 @@ Collective blind spots: <list>
 Interpretation: <2-3 sentence plain-language summary>
 
 ## Methodology footer
-Profiles executed: <list with token costs>
-Total token cost: <sum>
+Profiles executed: <list with credit costs>
+Total credit cost: <sum>
 ```
 
 End with the consensus umbrella disclaimer from the investor-profiles skill.

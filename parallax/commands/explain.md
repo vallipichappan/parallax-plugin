@@ -23,14 +23,14 @@ Infer the lookback from the user's statement ("this month" → ~21 trading days,
 - `{"error": "No profile data found", ...}` → **equity** → route through `export_price_series`.
 - Non-error profile → **ETF** → route through `etf_daily_price`.
 
-This adds N calls at 1 token each (one per holding).
+This adds N calls at 0.1 credits each (one per holding).
 
 ### Step 1b — Pull price history (parallel, split by asset class)
 
 Fire all of the following in a single tool-call turn:
 
-- Each EQUITY holding → `export_price_series` with the RIC (FREE). Use close prices.
-- Each ETF holding → `etf_daily_price` with the plain ticker. Returns per-row `date` + `changepercent`. 1 token.
+- Each EQUITY holding → `export_price_series` with the RIC (0.05 credits). Use close prices.
+- Each ETF holding → `etf_daily_price` with the plain ticker. Returns per-row `date` + `changepercent`. 0.05 credits.
 
 ### Step 1c — Compute attribution + halt rule
 

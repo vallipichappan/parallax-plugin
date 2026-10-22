@@ -9,7 +9,7 @@ description: RIC resolution, parallel execution, fallback rules, advice-boundary
 
 Stocks require Reuters Instrument Codes (RICs). When the user provides a plain ticker:
 
-1. Call `search_stocks` with the ticker or company name — it is free (0 tokens) and returns the RIC directly. This is the primary resolver.
+1. Call `search_stocks` with the ticker or company name — it is free (0 credits) and returns the RIC directly. This is the primary resolver.
 2. If `search_stocks` is unavailable or ambiguous, call `get_company_info` with the plain ticker — it often resolves automatically.
 3. If still empty, retry with the most likely exchange suffix:
 
@@ -27,6 +27,12 @@ Stocks require Reuters Instrument Codes (RICs). When the user provides a plain t
 | Oslo | `.OL` | `YAR.OL` | Norwegian companies |
 | Korea | `.KS` | `005930.KS` | 6-digit numeric |
 | Singapore | `.SI` | `D05.SI` | Singapore companies |
+| Milan | `.MI` | `CRDI.MI` | Italian companies |
+| Madrid | `.MC` | `CABK.MC` | Spanish companies |
+| SIX Swiss | `.S` | `CMBN.S` | Swiss companies |
+| Mexico | `.MX` | `GFNORTEO.MX` | Mexican companies |
+| Santiago | `.SN` | `CHILE.SN` | Chilean companies |
+| Philippines | `.PS` | `BPI.PS` | Philippine companies |
 
 **Ambiguous tickers:** Try `.O` then `.N` first (US most common). Numeric codes: 4 digits → `.T` / `.HK` / `.TW` by context; 6 digits → `.KS`.
 
@@ -145,8 +151,15 @@ For workflows that derive markets from a candidate set rather than a single home
 | `.TW` | Taiwan |
 | `.KS` | South Korea |
 | `.SI` | Singapore |
+| `.AX` | Australia |
+| `.MI` | Italy |
+| `.MC` | Spain |
+| `.S` | Switzerland |
+| `.MX` | Mexico |
+| `.SN` | Chile |
+| `.PS` | Philippines |
 
-`.HK`, `.AX`, `.OL` have no currently-covered macro market. A candidate on one of these exchanges gets no market tag — never substitute a nearby market (e.g. China for Hong Kong).
+`.HK`, `.OL` have no currently-covered macro market. A candidate on one of these exchanges gets no market tag — never substitute a nearby market (e.g. China for Hong Kong).
 
 **Every suffix named anywhere in this skill appears in exactly one of the two groups above — mapped, or explicitly uncovered.** A suffix that appears in the RIC Resolution table but in neither group here is a drift bug: it makes a candidate on that exchange silently lose its market tag. `.SI` and `.K` were in that state until 2026-08-20.
 
