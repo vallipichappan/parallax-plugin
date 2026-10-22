@@ -103,7 +103,7 @@ If the invocation already carries an obvious payload, skip the menu and route di
 4. Holdings with weights → `/parallax:portfolio`
 5. A single ticker → `/parallax:stock`
 6. A country name → `/parallax:macro`
-7. Two or more unweighted tickers → ask once whether the user wants a direct comparison, watchlist surveillance, or investor-profile consensus. Direct comparison uses `get_company_info` + `get_peer_snapshot` per ticker with the cross-validation gate, per the tool-selection skill; watchlist uses `/parallax:rebalance`; consensus uses `/parallax:investor`.
+7. Two or more unweighted tickers → classify each with `etf_profile` first per the asset-class-routing skill. ETFs go to `/parallax:etf`: compare mode for 2-5 ETFs (ask which 5 if more), single mode for one ETF. Never call `get_peer_snapshot` on an ETF leg. A mixed set gets both paths, and the output says ETFs and equities are not ranked against each other; a lone equity goes to `/parallax:stock`. The routed command may re-run its own `etf_profile` check. For two or more equities, ask once whether the user wants a direct comparison, watchlist surveillance, or investor-profile consensus. Direct comparison uses `get_company_info` + `get_peer_snapshot` per ticker with the cross-validation gate, per the tool-selection skill; watchlist uses `/parallax:rebalance`; consensus uses `/parallax:investor`.
 
 When ambiguous, name the likely command and confirm while running: *"Sounds like `/parallax:portfolio` — dropping in now."*
 

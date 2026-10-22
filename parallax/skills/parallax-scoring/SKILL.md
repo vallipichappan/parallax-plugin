@@ -5,7 +5,7 @@ description: How to interpret Parallax factor scores (0-10 per security) and exp
 
 # Parallax Scoring
 
-Five factors, each **0-10**, peer-relative within the stock's sector:
+Five factors, each **0-10**, computed as a percentile rank against other covered stocks in the investment universe, not within the stock's sector (`explain_methodology` "scoring"). For a peer- or sector-level comparison, use `get_peer_snapshot`.
 
 | Factor | Measures |
 |---|---|

@@ -13,7 +13,7 @@ Both a scenario description and a portfolio are required — prompt for either i
 
 | Tool | Parameters | Notes |
 |---|---|---|
-| `get_news_synthesis` | 2-3 most affected sectors | What the market already knows. Async — never blocks |
+| `get_news_synthesis` | 2-3 most affected sectors | What the market already knows. Async — server waits for the result; never re-call. Fire it in this batch so its server-side wait overlaps the other calls |
 | `get_telemetry` | fields: regime_tag, signals, commentary.headline, commentary.mechanism, divergences | Synchronous — always pass `fields` to cap response size (full response is 60KB+) |
 | `macro_analyst` | relevant markets, component="tactical" | Positioning implications |
 | `build_stock_universe` | theme describing scenario beneficiaries | Hoisted here — the beneficiary theme derives from the scenario text alone and needs no portfolio data |
@@ -32,7 +32,7 @@ Factor scores are equity-only. Do not call `get_score_analysis` for an ETF.
 ## Phase 2b — Assess Portfolio Exposure (after 2a)
 
 In parallel:
-- `analyze_portfolio` with `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` — sector exposures (no `holdings`/`lens` params exist; there is no `factor_exposures` field — do not pass one). `fields` is a passthrough, so an invalid name is not rejected — check `result._meta.invalid_fields` after the call and treat any entry as a caller error. Use only names from the `response-shapes` skill. May exceed 180K chars; fall back to `check_portfolio_redundancy` if truncated.
+- `analyze_portfolio` (async — server waits for the result; never re-call) with `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` — sector exposures (no `holdings`/`lens` params exist; there is no `factor_exposures` field — do not pass one). `fields` is a validated enum — an invalid name fails the call with a schema error, not a silently-dropped entry in `invalid_fields`. Use only names from the `response-shapes` skill. May exceed 180K chars; fall back to `check_portfolio_redundancy` if truncated.
 - `get_score_analysis` for each **equity** holding (server-default window) — current trajectories. **Fan-out cap:** at >20 holdings, cover top-20 by weight plus any flagged; list skipped symbols in a degraded-coverage note.
 
 Rank holdings deterministically from sector exposure, weighted concentration, score direction, and the scenario's stated transmission channels. This provisional ranking feeds the final assessment after candidate validation.
@@ -44,7 +44,7 @@ Rank holdings deterministically from sector exposure, weighted concentration, sc
 
 ## Phase 4 — Action Plan (after Phase 3)
 
-Call `get_assessment` once with the scenario, transmission mechanisms, macro regime, deterministic exposure ranking, and validated candidates. Ask for exposure-reduction classifications prioritized by urgency and magnitude. Exclude ⚠ MISMATCH holdings. Poll with the wait cap; if it expires, render the deterministic Phase 2b findings with "Action-plan synthesis pending — service temporarily unavailable."
+Call `get_assessment` once with the scenario, transmission mechanisms, macro regime, deterministic exposure ranking, and validated candidates. Ask for exposure-reduction classifications prioritized by urgency and magnitude. Exclude ⚠ MISMATCH holdings. Async — server waits for the result; on a "still running" reply follow the async-jobs skill; never re-call. If it does not return a result, render the deterministic Phase 2b findings with the label per the async-jobs skill ("Analysis pending" with the `job_id` if still running; "Analysis unavailable" if it failed).
 
 
 **Universe reproducibility:** any candidate list here comes from `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering. Tell the user the candidate set is a point-in-time sample, per the conventions skill's Universe Search Reproducibility section. Decide emptiness from the `companies` array alone, and when the response carries `degraded: true`, name the `relaxed` screens in a degraded-coverage note, per the same skill.

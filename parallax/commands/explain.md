@@ -65,7 +65,7 @@ Call `get_score_analysis` per equity holding in parallel (no explicit `weeks` �
 
 For the **top 3 equity detractors** by weighted contribution, call `get_news_synthesis` in parallel. Reuse the cross-validated `get_peer_snapshot` results from Step 2. An ETF detractor gets no news call; list it in Top Detractors with its price attribution only.
 
-`get_news_synthesis` is async — never retry it, poll `check_job_status` per the async-jobs skill, and never let it block the rest of the output. Overlap it with the macro reasoning and the price/score computations, and assemble those sections immediately. On wait-cap expiry, render "Analysis pending — service temporarily unavailable" inside Top Detractors.
+`get_news_synthesis` is async — server waits for the result; on a "still running" reply follow the async-jobs skill; never re-call. Fire it in the same parallel batch as the other data calls so its server-side wait overlaps theirs; the batch returns when news returns. If it does not return a result, render the label per the async-jobs skill ("Analysis pending" with the `job_id` if still running; "Analysis unavailable" if it failed) inside Top Detractors and finish every other section.
 
 **A "Transient" verdict must not be finalized before the detractor's news resolves** (or its absence is confirmed). Step 5's provisional flag keys on whether a major event broke after the last score data point, which only the news reveals. If news is still pending, mark the affected divergence rows provisional-pending-news.
 
@@ -85,7 +85,7 @@ Each row below is an analytical classification from threshold results. It is not
 | Down | n/a (ETF leg or ⚠ MISMATCH) | **Unclassified** — price attribution only | Excluded from the verdict; state the excluded weight next to the verdict |
 | Flat/Up | any | **Not a detractor** — did not contribute to the loss | Excluded from the verdict |
 
-Portfolio-level verdict, computed over detractors only: majority of weighted detractors "Transient" → the drawdown is likely noise. Majority "Fundamental" → it reflects real deterioration.
+Portfolio-level verdict, computed over classified detractors only (Transient, Fundamental, Ambiguous); Unclassified weight is excluded from the denominator and stated next to the verdict. A Transient row marked provisional pending news counts as Transient and the verdict is marked provisional. Majority of that weight "Transient" → the drawdown is likely noise. Majority "Fundamental" → it reflects real deterioration. Majority "Ambiguous" → render "Mixed — mostly ambiguous" and name the split. If no detractor is classified Transient, Fundamental, or Ambiguous, render "Noise-or-signal verdict unavailable — no classifiable detractor" instead of a majority verdict. If no class holds a weighted majority, render "Mixed" and name the split (e.g., "50% Transient / 50% Fundamental by weight").
 
 ## Step 6 — Classification context
 

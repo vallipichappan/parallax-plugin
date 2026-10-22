@@ -13,11 +13,11 @@
 
 ## Why Single-Session Matters
 
-Process-oriented plugins require multiple sessions: initiate coverage, wait for analysis, retrieve results, format output. Parallax delivers a structured verdict in one command — `/parallax:stock AAPL` fires 10 parallel MCP calls, resolves macro context, cross-validates company identity, applies fallback patterns, and returns a complete research brief. The user types one line and gets the answer. This is possible because the intelligence (factor scores across 65K+ companies) is pre-computed — Claude's job is orchestration and synthesis, not derivation.
+Process-oriented plugins require multiple sessions: initiate coverage, wait for analysis, retrieve results, format output. Parallax delivers a structured verdict in one command — `/parallax:stock AAPL` fires 8 parallel MCP calls, cross-validates company identity, then adds macro context, technicals and news, applies fallback patterns, and returns a complete research brief. The user types one line and gets the answer. This is possible because the intelligence (factor scores across 65K+ companies) is pre-computed — Claude's job is orchestration and synthesis, not derivation.
 
 ## What Pre-Computed Scores Enable
 
-Parallax scores are computed across 65,000+ companies before the session starts. This means: consistent scoring methodology across all companies, peer-relative rankings within sectors, historical score trajectories for trend analysis, and cross-validated data (company name checks, coverage thresholds). Claude doesn't need to derive quality or value metrics from raw financials each time — it gets them instantly and spends its reasoning budget on synthesis, macro context, and actionable recommendations.
+Parallax scores are computed across 65,000+ companies before the session starts. This means: consistent scoring methodology across all companies, peer comparisons within sectors, historical score trajectories for trend analysis, and cross-validated data (company name checks, coverage thresholds). Claude doesn't need to derive quality or value metrics from raw financials each time — it gets them instantly and spends its reasoning budget on synthesis, macro context, and actionable recommendations.
 
 ## Unique Capabilities
 

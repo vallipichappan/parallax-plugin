@@ -44,14 +44,14 @@ Checkup Batches A, B, C still execute. Advisor mode adds the following:
 
 | Tool | Parameters | Notes |
 |---|---|---|
-| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["portfolio_summary","performance_metrics","rolling_metrics","drawdown_analysis"]` | Returns/risk. May exceed 180K chars — fall back to checkup path if truncated |
-| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` | Sector/factor concentration. There is no `holdings` or `lens` parameter — the tool takes a dated `portfolio` array plus a `fields` subset |
+| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["portfolio_summary","performance_metrics","rolling_metrics","drawdown_analysis"]` | Async — server waits for the result; never re-call. Returns/risk. May exceed 180K chars — fall back to checkup path if truncated |
+| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` | Async — server waits for the result; never re-call. Sector/factor concentration. There is no `holdings` or `lens` parameter — the tool takes a dated `portfolio` array plus a `fields` subset |
 
-`fields` is a **direct passthrough** to the API, not a validated enum — an invalid name is not rejected, it is simply absent from the response. Check `result._meta.invalid_fields` after the call; a non-empty list is a caller error, not missing data. Use only names from the `response-shapes` skill.
+`fields` is a validated enum — an invalid name fails the tool call with a schema error, not a silently-dropped entry in `invalid_fields`. Use only names from the `response-shapes` skill.
 
 If the user names a benchmark: ETFs route through `etf_daily_price` (plain ticker), equities through `export_price_series` (RIC) — mixing them silently fails empty.
 
-### Batch C — Per-holding drill-down
+### Drill-down — Per-holding detail
 
 Select up to 8 holdings per health-flags drill-down rules (flag count desc, weight desc). For each:
 
@@ -61,13 +61,13 @@ Select up to 8 holdings per health-flags drill-down rules (flag count desc, weig
 | `get_stock_outlook` | `symbol`, aspect="risk_return" | Risk vs peers |
 | `get_peer_snapshot` | `symbol` | Current scores. Cross-validate per the conventions skill; on mismatch move the holding to ⚠ MISMATCH |
 
-If drill-down adds a ⚠ MISMATCH holding, re-run the Batch C flag evaluation and health status before rendering.
+If drill-down adds a ⚠ MISMATCH holding, re-run the Checkup Mode Batch C flag evaluation and health status before rendering.
 
-News: `get_news_synthesis` for holdings >10% weight AND flagged, cap 5. Async — never blocks.
+News: `get_news_synthesis` for holdings >10% weight AND flagged, cap 5. Async — server waits for the result; never re-call; fire it in this batch so its server-side wait overlaps the drill-down calls.
 
 ### Batch D — AI Assessment (after all data)
 
-`get_assessment` with prompt incorporating: portfolio findings, flags, macro, drill-down data, client context. Fire it the moment classifications are assigned — do not wait on pending news. Exclude ⚠ MISMATCH holdings from the assessment prompt (empty profiles produce hallucinated factor narratives). Poll per the async-jobs skill; on wait-cap expiry render "Analysis pending" and continue.
+`get_assessment` with prompt incorporating: portfolio findings, flags, macro, drill-down data, client context. Fire it once classifications are assigned; if news returned no result, build the prompt without it. Exclude ⚠ MISMATCH holdings from the assessment prompt (empty profiles produce hallucinated factor narratives). Async — server waits for the result; on a "still running" reply follow the async-jobs skill; never re-call. If it does not return a result, render the label per the async-jobs skill ("Analysis pending" with the `job_id` if still running; "Analysis unavailable" if it failed) and continue.
 
 **Output:** Performance vs Benchmark → Health badge → Scorecard → Flags → ⚠ MISMATCH table (if any) → Per-Holding Analysis → Macro Context → Suitability Assessment → Prioritized Classifications (per health-flags skill, with §12 informational preface).
 

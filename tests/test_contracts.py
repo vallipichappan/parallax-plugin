@@ -390,31 +390,68 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertNotIn(phrase, text)
         self.assertIn("analytical classification", text)
 
-    def test_analyze_portfolio_calls_use_literal_valid_fields_and_meta_check(self) -> None:
-        response_shapes = read(SKILLS / "response-shapes" / "SKILL.md")
-        valid_table = section(
-            response_shapes,
-            "### Valid field names",
-            "### Names that do NOT exist",
-        )
-        valid = set(re.findall(r"`([a-z_]+)`", valid_table))
-        expected_calls = {
-            "portfolio.md": 2,
-            "rebalance.md": 2,
-            "scenario.md": 1,
-            "universe.md": 1,
-        }
-        pattern = re.compile(r"fields=\[(.*?)\]", re.DOTALL)
+    def test_analyze_portfolio_fields_match_the_server_enum(self) -> None:
+        """analyze_portfolio `fields` is a validated enum on the MCP server.
 
+        The list below is the server's enum at parallax-mcp f61709d
+        (2026-10-22). An invalid name fails the tool call. `turnover_analysis`
+        and `benchmark_prices` are not in it, though older docs listed both.
+        When the server enum changes, update SERVER_FIELDS from the server.
+        """
+        server_fields = {
+            "portfolio_parameters", "portfolio_input", "data_quality", "portfolio_summary",
+            "performance_metrics", "rolling_metrics", "drawdown_analysis", "portfolio_scores",
+            "concentration_metrics", "transactions", "company_info", "latest_holdings",
+            "market_allocation", "sector_allocation", "currency_allocation", "company_contribution",
+            "sector_contribution", "market_contribution", "time_period_returns", "monthly_returns",
+            "annual_returns", "daily_summary",
+        }
+        response_shapes = read(SKILLS / "response-shapes" / "SKILL.md")
+        valid_table = section(response_shapes, "### Valid field names", "### Names that do NOT exist")
+        table_rows = "\n".join(ln for ln in valid_table.splitlines() if ln.startswith("|"))
+        self.assertEqual(set(re.findall(r"`([a-z_]+)`", table_rows)), server_fields)
+        before_telemetry = response_shapes.split("## `get_telemetry`", 1)[0]
+        self.assertNotIn("direct passthrough", before_telemetry)
+        self.assertIn("validated enum", before_telemetry)
+
+        expected_calls = {"portfolio.md": 2, "rebalance.md": 2, "scenario.md": 1, "universe.md": 1}
+        pattern = re.compile(r"fields=\[(.*?)\]", re.DOTALL)
         for filename, expected_count in expected_calls.items():
-            text = read(COMMANDS / filename)
-            arrays = pattern.findall(text)
+            arrays = pattern.findall(read(COMMANDS / filename))
             self.assertEqual(len(arrays), expected_count, filename)
             for array in arrays:
                 fields = set(re.findall(r'"([a-z_]+)"', array))
                 self.assertTrue(fields)
-                self.assertTrue(fields.issubset(valid), (filename, fields - valid))
-            self.assertIn("invalid_fields", text)
+                self.assertTrue(fields.issubset(server_fields), (filename, fields - server_fields))
+
+    def test_async_set_matches_the_server(self) -> None:
+        """Eight tools wait server-side and return a job_id only on timeout.
+
+        Re-calling one after a timeout submits and bills a new job, so every
+        async list must name all eight, and no command may tell the model to
+        poll as the normal path.
+        """
+        async_tools = (
+            "get_stock_report", "get_etf_report", "get_financial_analysis", "get_assessment",
+            "analyze_portfolio", "get_news_synthesis", "get_technical_analysis", "build_stock_universe",
+        )
+        async_jobs = read(SKILLS / "async-jobs" / "SKILL.md")
+        fallback = section(read(SKILLS / "conventions" / "SKILL.md"), "**Async tools**", "\n\n")
+        invariant = [ln for ln in read(ROOT / "CLAUDE.md").splitlines() if "Instant vs async tool policy" in ln]
+        self.assertEqual(len(invariant), 1)
+        for name, text in {"async-jobs": async_jobs, "conventions": fallback, "CLAUDE.md": invariant[0]}.items():
+            for tool in async_tools:
+                with self.subTest(source=name, tool=tool):
+                    self.assertIn(f"`{tool}`", text)
+        for path in COMMANDS.glob("*.md"):
+            with self.subTest(command=path.name):
+                self.assertNotRegex(read(path), r"(?i)\bpoll(s|ed|ing)?\b")
+
+    def test_scores_are_not_called_sector_relative(self) -> None:
+        """Scores rank a stock across all covered stocks (explain_methodology, 2026-10-22)."""
+        for path in (*COMMANDS.glob("*.md"), *SKILLS.glob("*/SKILL.md"), ROOT / "docs" / "positioning.md"):
+            with self.subTest(path=path.name):
+                self.assertNotRegex(read(path), r"(?i)sector-relative (0-10|score)|peer-relative within the stock's sector")
 
     def test_telemetry_calls_use_the_standard_subset(self) -> None:
         required = {
@@ -472,7 +509,7 @@ class WorkflowContractTests(unittest.TestCase):
         # The server bills in credits; integer token prices are the pre-2026-10-18 table.
         for path in (*COMMANDS.glob("*.md"), *SKILLS.glob("*/SKILL.md")):
             with self.subTest(unit=path.name):
-                self.assertNotRegex(read(path), r"\b\d+(?:-\d+)? tokens?\b")
+                self.assertNotRegex(read(path), r"(?i)\b\d+(?:-\d+)? tokens?\b")
         workflows = costs.split("## Workflow Cost Estimates", 1)[1]
         for path in COMMANDS.glob("*.md"):
             with self.subTest(command=path.stem):
@@ -544,7 +581,13 @@ class WorkflowContractTests(unittest.TestCase):
 
     def test_marketing_stock_call_count_matches_command(self) -> None:
         positioning = read(ROOT / "docs" / "positioning.md")
-        self.assertIn("fires 10 parallel MCP calls", positioning)
+        step2 = section(read(COMMANDS / "stock.md"), "## Step 2", "## Step 3")
+        calls = [ln for ln in step2.splitlines() if ln.startswith("| `")]
+        async_tools = ("get_technical_analysis", "get_news_synthesis", "get_stock_report", "get_assessment")
+        for tool in async_tools:
+            with self.subTest(async_tool=tool):
+                self.assertFalse(any(ln.startswith(f"| `{tool}`") for ln in calls), "async tool back in the pre-gate batch")
+        self.assertIn(f"fires {len(calls)} parallel MCP calls", positioning)
         # 0.1 credits per holding against 5 flat: parity at 50 holdings.
         self.assertIn("cost the same at 50 holdings", positioning)
         self.assertNotIn("at 6 holdings", positioning)

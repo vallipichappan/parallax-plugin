@@ -11,7 +11,7 @@ Call `search_stocks` (free) with the ticker or company name; fall back to `get_c
 
 ## Step 2 — Parallel Data Batch
 
-Fire all simultaneously once RIC is confirmed:
+Fire all instant calls simultaneously once RIC is confirmed:
 
 | Tool | Parameters | Notes |
 |---|---|---|
@@ -19,18 +19,26 @@ Fire all simultaneously once RIC is confirmed:
 | `get_peer_snapshot` | `symbol` | Factor scores + peer ranking |
 | `get_financials` | `symbol`, statement="summary" | Revenue/income narrative |
 | `get_score_analysis` | `symbol` | Factor trend (server-default 52-week window) |
-| `get_technical_analysis` | `symbol` | Async — poll per async-jobs skill, do NOT retry |
 | `get_stock_outlook` | `symbol`, aspect="analyst_targets" | Price targets |
 | `get_stock_outlook` | `symbol`, aspect="recommendations" | Buy/hold/sell |
 | `get_stock_outlook` | `symbol`, aspect="risk_return" | Risk/return vs peers |
 | `get_stock_outlook` | `symbol`, aspect="dividends" | Dividend history (server-default depth) |
-| `get_news_synthesis` | `symbol` | Async — don't block output |
 
 **Cross-validation gate (non-bypassable):** check `get_peer_snapshot`'s top-level `target_company` against `get_company_info.data.name`. On mismatch, refuse to render the verdict — show both names and ask the user to confirm the intended company.
 
 ## Step 3 — Macro Context
 
-After Step 1 resolves (need company info for market reasoning):
+After the cross-validation gate passes (need company info for market reasoning). On a mismatch, Step 3 never fires, so no macro, technical or news credits are spent on a refused verdict. If the gate cannot run because `get_peer_snapshot` is unavailable after its retry, Step 3 does not fire either; render "Technicals and news not run — identity could not be confirmed" in their sections.
+
+Two async data calls also belong to this step. Issue them in the same parallel message as the `macro_analyst` calls. If the macro section is skipped (no covered market), issue them on their own right after `list_macro_countries`; the macro skip rule never skips them.
+
+| Tool | Parameters | Notes |
+|---|---|---|
+| `get_technical_analysis` | `symbol` | Trend, momentum, support/resistance |
+| `get_news_synthesis` | `symbol` | Catalysts and news context |
+
+Both are async: the server waits for each job and returns the result in the same call (up to 120s and 150s). Never re-call one; on a "still running" or failed reply, follow the async-jobs skill. They are kept out of Step 2 because a parallel batch returns only when its slowest call returns.
+
 
 1. `list_macro_countries` to check coverage.
 2. Identify relevant markets (home market + key revenue geography). Cap at 3.
@@ -43,7 +51,7 @@ Skip macro section if no relevant covered markets.
 Analyze through two independent lenses that must not borrow each other's evidence:
 
 - **Fundamentals lens** — factor scores, financials, peers, dividends. Call `explain_methodology` for any factor score ≥8 or ≤3 (it's free).
-- **Technicals lens** — price/trend/momentum from `get_technical_analysis` only; it does not borrow factor scores or financials as evidence. **Fallback:** if technicals time out, render the lens from the Momentum factor sub-trend prefixed "Technical analysis unavailable — Momentum factor proxy:" — the lens always produces a read; it never silently disappears.
+- **Technicals lens** — price/trend/momentum from `get_technical_analysis` only; it does not borrow factor scores or financials as evidence. **Fallback:** if technicals return no result, render the lens from the Momentum factor sub-trend, prefixed with the label per the async-jobs skill ("Analysis pending" with the `job_id` if still running; "Analysis unavailable" if it failed), then "— Momentum factor proxy:" — the lens always produces a read; it never silently disappears.
 
 Apply fallback rules from the conventions skill for missing data.
 

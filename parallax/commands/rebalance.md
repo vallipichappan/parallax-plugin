@@ -19,7 +19,7 @@ Optional inputs: `target` (e.g., "reduce concentration, improve quality") and `c
 
 1. `get_score_analysis` for each symbol (all in parallel, server-default window) — compute score change over the recent weeks.
 2. Flag movers: >1 point total score change or any factor >2 points. Add a verdict-sensitivity line naming the 1-2 symbols nearest those cutoffs.
-3. For flagged symbols only, fire as ONE parallel batch (never serially): `get_news_synthesis` (async — don't block), `get_technical_analysis` (async — poll `check_job_status` per the async-jobs skill, do NOT retry), `get_stock_outlook` (aspect="recommendations").
+3. For flagged symbols only, fire as ONE parallel batch (never serially): `get_news_synthesis` (async — server waits for the result; never re-call), `get_technical_analysis` (async — on a "still running" reply follow the async-jobs skill; never re-call), `get_stock_outlook` (aspect="recommendations").
 
 **Output:** Alert table ranked by magnitude of change → Per-alert detail (which factors moved, catalyst) → Stable names (one-liner each) → Which names warrant `/parallax:deep-dive`.
 
@@ -32,8 +32,8 @@ Optional inputs: `target` (e.g., "reduce concentration, improve quality") and `c
 | Tool | Parameters | Notes |
 |---|---|---|
 | `get_company_info` | each equity holding | Ground-truth name for scoring cross-validation |
-| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["portfolio_summary","performance_metrics","rolling_metrics","drawdown_analysis"]` | Returns/risk. No `holdings`/`lens` params exist. `fields` is a passthrough — an invalid name is not rejected, so check `result._meta.invalid_fields` after the call and use only names from the `response-shapes` skill. May exceed 180K chars — fall back to Batch A alternatives if truncated |
-| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` | Concentration analysis |
+| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["portfolio_summary","performance_metrics","rolling_metrics","drawdown_analysis"]` | Async — server waits for the result; never re-call. Returns/risk. No `holdings`/`lens` params exist. `fields` is a validated enum — an invalid name fails the call with a schema error, not a silently-dropped entry in `invalid_fields`. Use only names from the `response-shapes` skill. May exceed 180K chars — fall back to Batch A alternatives if truncated |
+| `analyze_portfolio` | `portfolio=[{date, symbol, weight}]`, `fields=["concentration_metrics","sector_allocation","company_contribution"]` | Async — server waits for the result; never re-call. Concentration analysis |
 | `quick_portfolio_scores` | equity holdings | Factor scores (fallback ladder per health-flags skill; cross-validate per conventions — mismatches excluded, ⚠ MISMATCH table) |
 | `check_portfolio_redundancy` | holdings list | Overlap detection |
 | `list_macro_countries` | — | Market coverage |

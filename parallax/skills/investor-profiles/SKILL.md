@@ -108,7 +108,7 @@ This output is an AI-inferred synthesis produced by the Parallax AI Investor Pro
 - **Universe mode** (no ticker): `build_stock_universe` → `get_financials` (ratios) for the candidate set → rank by ROC + EY → return the top basket
 - **Ticker-check mode** (single ticker): Build sector peer universe → rank target within peers → report percentile
 
-**CRITICAL — universe query scoping:** `build_stock_universe` times out on broad queries. Default: "US large-cap consumer staples". Sector-scoped queries only. If timeout, retry narrower once; second timeout → INSUFFICIENT_UNIVERSE.
+**CRITICAL — universe query scoping:** `build_stock_universe` times out on broad queries. Default: "US large-cap consumer staples". Sector-scoped queries only. Timeout handling: on a "still running" reply, run one `check_job_status` on the returned `job_id`. If it is still pending, do not start a second job: return INSUFFICIENT_UNIVERSE, and name the pending `job_id` with an offer to check it later. Only if the job failed, run one narrower query — a new billed call (5 credits), not a re-call. Handle that query's reply the same way (one `check_job_status` if still running); if it fails or is still pending, return INSUFFICIENT_UNIVERSE.
 
 Report the target's observed rank and percentile. Exclude financials and utilities by default. EY computed as 1/enterprise_value_ebit.
 
@@ -149,7 +149,7 @@ Compute net cash from the balance sheet (cash - total debt), NOT from the ratios
 2. `macro_analyst` (component="tactical") per market in parallel
 3. `get_telemetry` for cross-market regime divergence
 4. Identify regime themes where macro and telemetry agree
-5. `build_stock_universe` per theme (sector-scoped queries — same timeout caveat as Greenblatt)
+5. `build_stock_universe` per theme (sector-scoped queries). Timeout handling is per theme, not per run: a pending or failed theme is dropped and listed, per `/parallax:investor` Basket Mode step 6; it does not end the run with INSUFFICIENT_UNIVERSE
 6. `get_peer_snapshot` plus `get_company_info` for the leaders per theme, with identity mismatches dropped
 
 ### Single-ticker mode (one ticker)

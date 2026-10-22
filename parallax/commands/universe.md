@@ -13,7 +13,7 @@ argument-hint: "[investment theme, e.g. 'profitable AI infrastructure companies'
 
 **Empty-universe gate (required first check):** if the universe comes back empty, skip Steps 2-6 entirely — report the empty result and suggest a narrower/reworded query. Never call holdings-requiring tools with no holdings.
 
-**Timeout fallback:** on timeout, retry once with a narrower query; if still failing, continue with `universe = []` and flag it — do not substitute `check_portfolio_redundancy` or any other tool as a placeholder.
+**Timeout fallback:** on a "still running" reply, run one `check_job_status` on the returned `job_id`. If it is still pending, do not start a second job: treat the universe as empty for this run (the empty-universe gate above applies; never substitute `check_portfolio_redundancy` or any other tool as a placeholder), and name the pending `job_id` with an offer to check it later. Only if the job failed, run one narrower query — a new billed call (5 credits), not a re-call. Handle that query's reply the same way (one `check_job_status` if still running); if it fails or is still pending, treat the universe as empty for this run (the empty-universe gate above applies; never substitute `check_portfolio_redundancy` or any other tool as a placeholder).
 
 **Divergence assertion:** if the query named 2+ sectors but >60% of results collapse into a single sector, fail loud: "universe collapsed to single sector despite multi-sector request."
 
@@ -37,7 +37,7 @@ Adjust weights based on scores, redundancy flags, and sector balance. Call `quic
 
 ## Step 6 — Validate (conditional)
 
-`analyze_portfolio` with `portfolio=[{date, symbol, weight}]` and `fields=["portfolio_summary","performance_metrics","drawdown_analysis","concentration_metrics","sector_allocation"]` on the final allocation to confirm it behaves as intended. No `holdings` or `lens` parameters exist. Check `result._meta.invalid_fields`; any entry is a caller error. If the response is truncated (>180K chars), rely on Step 4-5 outputs — and disclose the fallback scope: rolling metrics, drawdown, contribution attribution, and performance time series are NOT validated on that path.
+`analyze_portfolio` (async — server waits for the result; never re-call) with `portfolio=[{date, symbol, weight}]` and `fields=["portfolio_summary","performance_metrics","drawdown_analysis","concentration_metrics","sector_allocation"]` on the final allocation to confirm it behaves as intended. No `holdings` or `lens` parameters exist. `fields` is a validated enum — an invalid name fails the call with a schema error, not a silently-dropped entry in `invalid_fields`. Use only names from the `response-shapes` skill. If the response is truncated (>180K chars), rely on Step 4-5 outputs — and disclose the fallback scope: rolling metrics, drawdown, contribution attribution, and performance time series are NOT validated on that path.
 
 
 **Universe reproducibility:** any candidate list here comes from `build_stock_universe`, which is not reproducible run-to-run — set membership varies, not just ordering. Tell the user the candidate set is a point-in-time sample, per the conventions skill's Universe Search Reproducibility section. Decide emptiness from the `companies` array alone, and when the response carries `degraded: true`, name the `relaxed` screens in a degraded-coverage note, per the same skill.
