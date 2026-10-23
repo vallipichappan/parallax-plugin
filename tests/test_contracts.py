@@ -424,6 +424,23 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertTrue(fields)
                 self.assertTrue(fields.issubset(server_fields), (filename, fields - server_fields))
 
+    def test_analyze_portfolio_meta_path_matches_the_server(self) -> None:
+        """_meta sits inside the job result, never at the top level.
+
+        parallax-api d85980f3 workers/portfolio_analysis_worker.py:53,:91 returns
+        {"success": True, "result": {..., "_meta": ...}}; the MCP spreads that
+        (route.ts:1139-1142) -> result._meta. check_job_status spreads the job
+        envelope (route.ts:730) -> result.result._meta.
+        """
+        text = read(SKILLS / "response-shapes" / "SKILL.md")
+        analyze = text.split("## `get_telemetry`", 1)[0]
+        self.assertNotIn("top level of the direct response", analyze)
+        self.assertNotIn("not under `result`", analyze)
+        self.assertIn("`result._meta`", analyze)
+        self.assertIn("`result.result._meta`", analyze)
+        self.assertNotIn("`invalid_fields` stays empty", analyze)
+        self.assertIn("always `null`", analyze)
+
     def test_async_set_matches_the_server(self) -> None:
         """Eight tools wait server-side and return a job_id only on timeout.
 
