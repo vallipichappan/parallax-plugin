@@ -9,7 +9,7 @@ Two Parallax tools accept a `fields` subset to cap response size.
 
 **`analyze_portfolio`'s `fields` is a validated enum, not a passthrough.** An invalid name fails the tool call outright with a schema error — it does not silently drop the block and return `success: true`. Always take field names from the table below rather than inferring them from a section heading or a prose description of what you want.
 
-**`analyze_portfolio`'s `_meta` sits at the top level of the direct response, not under `result`.** If the result is fetched later through `check_job_status`, the payload (and its `_meta`) sits under `result`. It carries `fields_requested`, `fields_returned`, and `invalid_fields`. Through this MCP server `invalid_fields` stays empty, because an invalid name fails the call before it reaches the API.
+**`analyze_portfolio` wraps its payload in `result`.** The direct reply is `{success, result: {...}}`: the requested blocks and `_meta` both sit under `result`, so read `result._meta` and `result.<block>`. If the call returned a "still running" reply and you fetch the job with `check_job_status`, that reply wraps the same object once more: read `result.result._meta` and `result.result.<block>`. `_meta` carries `fields_requested`, `fields_returned` and `invalid_fields`. It is present on every call through this MCP server, because the server always sends a field list (the compact default when `fields` is omitted). `invalid_fields` is always `null` here, because an invalid name fails the call with a schema error before it reaches the API.
 
 ## `analyze_portfolio`
 
